@@ -79,6 +79,8 @@ model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = [
 model.fit(X_train, Y_train, epochs = 90, batch_size = 50, validation_data = (X_test, Y_test))
 model.summary()
 
+model.save("C:\\Users\\khale\\Desktop\\Mimi4me")
+
 predictions = model.predict(X_test)
 score = model.evaluate(X_test, Y_test)
 print(score)
