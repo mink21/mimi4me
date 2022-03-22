@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
@@ -15,8 +16,15 @@ class AudioRecorder extends StatefulWidget {
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
   bool _isRecording = false;
+  bool _isSleeping = false;
   int _recordDuration = 0;
   Timer? _timer;
+
+  int _noiseValue = 60;
+  List<String> _causeList = [
+    'Conversation\n',
+    'Background Music',
+  ];
 
   final _audioRecorder = Record();
   final _recordTime = 3;
@@ -26,6 +34,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   void initState() {
     _isSaved = false;
     _isRecording = false;
+    _isSleeping = false;
     _start();
     super.initState();
   }
@@ -40,14 +49,15 @@ class _AudioRecorderState extends State<AudioRecorder> {
   @override
   Widget build(BuildContext context) {
     if (_isRecording) _restart();
+
     return Stack(children: [
       Align(alignment: Alignment.center, child: _buildRecord()),
-      Align(alignment: Alignment.topCenter, child: _buildDecibel()),
-      Positioned(top: 400, child: _buildCauses())
+      Align(alignment: Alignment.topCenter, child: _buildDecibel(_noiseValue)),
+      Positioned(top: 400, child: _buildCauses(_causeList))
     ]);
   }
 
-  Widget _buildDecibel() {
+  Widget _buildDecibel(int noiseValue) {
     return Material(
         child: Stack(
       children: [
@@ -68,17 +78,17 @@ class _AudioRecorderState extends State<AudioRecorder> {
               child: RichText(
                 maxLines: 1,
                 textAlign: TextAlign.center,
-                text: const TextSpan(
-                  style: TextStyle(
+                text: TextSpan(
+                  style: const TextStyle(
                     fontSize: 14.0,
                     color: Colors.green,
                   ),
                   children: <TextSpan>[
                     TextSpan(
-                        text: '60',
-                        style: TextStyle(
+                        text: noiseValue.toString(),
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 60)),
-                    TextSpan(text: 'db'),
+                    const TextSpan(text: 'db'),
                   ],
                 ),
               ),
@@ -100,36 +110,33 @@ class _AudioRecorderState extends State<AudioRecorder> {
     ));
   }
 
-  Widget _buildCauses() {
+  Widget _buildCauses(List<String> causesList) {
+    const _style = TextStyle(
+        overflow: TextOverflow.ellipsis,
+        fontWeight: FontWeight.bold,
+        fontSize: 30);
+
+    var _list = causesList
+        .map((String cause) => TextSpan(text: cause, style: _style))
+        .toList();
+    _list.insert(
+        0,
+        const TextSpan(
+            text: 'Possible Cause\n',
+            style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 20)));
     return Container(
       padding: const EdgeInsets.only(left: 60.0, top: 30.0),
       child: RichText(
         softWrap: true,
-        text: const TextSpan(
-          style: TextStyle(
+        text: TextSpan(
+          style: const TextStyle(
             fontSize: 14.0,
             color: Colors.green,
           ),
-          children: [
-            TextSpan(
-                text: 'Possible Cause\n',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20)),
-            TextSpan(
-                text: 'Conversation\n',
-                style: TextStyle(
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30)),
-            TextSpan(
-                text: 'Background Music',
-                style: TextStyle(
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30)),
-          ],
+          children: _list,
         ),
       ),
     );
@@ -153,13 +160,13 @@ class _AudioRecorderState extends State<AudioRecorder> {
         color: color,
         child: InkWell(
           child: SizedBox(width: 56, height: 56, child: icon),
-          onTap: tapFunction,
+          onTap: _tapFunction,
         ),
       ),
     );
   }
 
-  void tapFunction() {
+  void _tapFunction() {
     if (_isRecording) {
       print("Force Stop");
       _stop();
@@ -178,6 +185,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
         setState(() {
           _isSaved = false;
+          _isSleeping = false;
           _recordDuration = 0;
         });
 
@@ -195,13 +203,29 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
     setState(() {
       _isSaved = true;
+      _isSleeping = true;
       _recordDuration = 0;
     });
+  }
+
+  void _fetchResult() {
+    final _random = Random();
+    int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
+    _noiseValue = nextNoiseValue(0, 99);
+
+    final List<String> possibleCauseList = [
+      'Conversation\n',
+      'Background Music\n',
+      'Car Hunks\n',
+      'Traffics\n',
+    ];
+    _causeList = (possibleCauseList..shuffle()).sublist(2);
   }
 
   void _restart() {
     if (!_isSaved && _recordDuration >= _recordTime) {
       _stop();
+      _fetchResult();
     } else if (_isSaved && _recordDuration >= _sleepTime) {
       _start();
     }
