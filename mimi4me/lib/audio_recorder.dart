@@ -171,7 +171,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
         color: color,
         child: InkWell(
           child: SizedBox(width: 56, height: 56, child: icon),
-          onTap: fetch,
+          onTap: _tapFunction,
         ),
       ),
     );
@@ -239,6 +239,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void _fetchResult() {
+    post(_audioRecorder);
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
     _noiseValue = nextNoiseValue(0, 200);
