@@ -40,13 +40,102 @@ class _AudioRecorderState extends State<AudioRecorder> {
   @override
   Widget build(BuildContext context) {
     if (_isRecording) _restart();
-    return Align(
-      alignment: Alignment.center,
-      child: _buildRecordStopControl(),
+    return Stack(children: [
+      Align(alignment: Alignment.center, child: _buildRecord()),
+      Align(alignment: Alignment.topCenter, child: _buildDecibel()),
+      Positioned(top: 400, child: _buildCauses())
+    ]);
+  }
+
+  Widget _buildDecibel() {
+    return Material(
+        child: Stack(
+      children: [
+        Container(
+            margin: const EdgeInsets.only(top: 60.0),
+            padding: const EdgeInsets.all(10.0),
+            width: 270.0,
+            height: 270.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                width: 30.0,
+                color: Colors.green,
+              ),
+            ),
+            child: Align(
+              alignment: Alignment.center,
+              child: RichText(
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                text: const TextSpan(
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.green,
+                  ),
+                  children: <TextSpan>[
+                    TextSpan(
+                        text: '60',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 60)),
+                    TextSpan(text: 'db'),
+                  ],
+                ),
+              ),
+            )),
+        Positioned(
+          bottom: 5,
+          left: 125,
+          child: Container(
+            margin: const EdgeInsets.only(top: 60.0),
+            width: 20.0,
+            height: 20.0,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    ));
+  }
+
+  Widget _buildCauses() {
+    return Container(
+      padding: const EdgeInsets.only(left: 60.0, top: 30.0),
+      child: RichText(
+        softWrap: true,
+        text: const TextSpan(
+          style: TextStyle(
+            fontSize: 14.0,
+            color: Colors.green,
+          ),
+          children: [
+            TextSpan(
+                text: 'Possible Cause\n',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20)),
+            TextSpan(
+                text: 'Conversation\n',
+                style: TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30)),
+            TextSpan(
+                text: 'Background Music',
+                style: TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30)),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildRecordStopControl() {
+  Widget _buildRecord() {
     late Icon icon;
     late Color color;
 
