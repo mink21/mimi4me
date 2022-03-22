@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
+import 'package:vibration/vibration.dart';
+import 'package:http/http.dart' as http;
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -16,25 +18,37 @@ class AudioRecorder extends StatefulWidget {
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
   bool _isRecording = false;
-  bool _isSleeping = false;
   int _recordDuration = 0;
   Timer? _timer;
 
-  int _noiseValue = 60;
-  List<String> _causeList = [
-    'Conversation\n',
-    'Background Music',
-  ];
+  Color _color = Colors.green;
+  int _noiseValue = 0;
+  List<String> _causeList = [];
 
   final _audioRecorder = Record();
   final _recordTime = 3;
   final _sleepTime = 3;
 
+  Future<http.Response> fetch() async {
+    var response = await http.get(Uri.parse('http://127.0.0.1:5000/'));
+
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      print(response);
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load album');
+    }
+
+    return response;
+  }
+
   @override
   void initState() {
     _isSaved = false;
     _isRecording = false;
-    _isSleeping = false;
     _start();
     super.initState();
   }
@@ -49,17 +63,28 @@ class _AudioRecorderState extends State<AudioRecorder> {
   @override
   Widget build(BuildContext context) {
     if (_isRecording) _restart();
-
-    return Stack(children: [
-      Align(alignment: Alignment.center, child: _buildRecord()),
-      Align(alignment: Alignment.topCenter, child: _buildDecibel(_noiseValue)),
-      Positioned(top: 400, child: _buildCauses(_causeList))
-    ]);
+    return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: const Alignment(0, 2),
+            end: const Alignment(0, -0.7),
+            colors: [
+              _color.withOpacity(0.3),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Stack(children: [
+          Align(alignment: Alignment.center, child: _buildRecord()),
+          Align(
+              alignment: Alignment.topCenter,
+              child: _buildDecibel(_noiseValue)),
+          Positioned(top: 400, child: _buildCauses(_causeList))
+        ]));
   }
 
   Widget _buildDecibel(int noiseValue) {
-    return Material(
-        child: Stack(
+    return Stack(
       children: [
         Container(
             margin: const EdgeInsets.only(top: 60.0),
@@ -70,7 +95,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
               shape: BoxShape.circle,
               border: Border.all(
                 width: 30.0,
-                color: Colors.green,
+                color: _color,
               ),
             ),
             child: Align(
@@ -79,9 +104,9 @@ class _AudioRecorderState extends State<AudioRecorder> {
                 maxLines: 1,
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.0,
-                    color: Colors.green,
+                    color: _color,
                   ),
                   children: <TextSpan>[
                     TextSpan(
@@ -107,7 +132,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
           ),
         ),
       ],
-    ));
+    );
   }
 
   Widget _buildCauses(List<String> causesList) {
@@ -119,22 +144,24 @@ class _AudioRecorderState extends State<AudioRecorder> {
     var _list = causesList
         .map((String cause) => TextSpan(text: cause, style: _style))
         .toList();
-    _list.insert(
-        0,
-        const TextSpan(
-            text: 'Possible Cause\n',
-            style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 20)));
+    if (_noiseValue > 0) {
+      _list.insert(
+          0,
+          const TextSpan(
+              text: 'Possible Cause\n',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20)));
+    }
     return Container(
       padding: const EdgeInsets.only(left: 60.0, top: 30.0),
       child: RichText(
         softWrap: true,
         text: TextSpan(
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14.0,
-            color: Colors.green,
+            color: _color,
           ),
           children: _list,
         ),
@@ -160,7 +187,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
         color: color,
         child: InkWell(
           child: SizedBox(width: 56, height: 56, child: icon),
-          onTap: _tapFunction,
+          onTap: fetch,
         ),
       ),
     );
@@ -185,7 +212,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
         setState(() {
           _isSaved = false;
-          _isSleeping = false;
           _recordDuration = 0;
         });
 
@@ -203,15 +229,35 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
     setState(() {
       _isSaved = true;
-      _isSleeping = true;
       _recordDuration = 0;
     });
+  }
+
+  void _vibrate() async {
+    bool? _hasVibrator = await Vibration.hasVibrator();
+    print(_hasVibrator);
+    if (_hasVibrator != null && _hasVibrator) {
+      Vibration.vibrate(duration: 2000);
+    }
+  }
+
+  void _changeColor() {
+    if (_noiseValue >= 140) {
+      _color = Colors.red;
+    } else if (_noiseValue > 100) {
+      _color = Colors.orange;
+    } else if (_noiseValue > 60) {
+      _color = Colors.yellow;
+    } else {
+      _color = Colors.green;
+    }
+    _vibrate;
   }
 
   void _fetchResult() {
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
-    _noiseValue = nextNoiseValue(0, 99);
+    _noiseValue = nextNoiseValue(0, 200);
 
     final List<String> possibleCauseList = [
       'Conversation\n',
@@ -220,6 +266,8 @@ class _AudioRecorderState extends State<AudioRecorder> {
       'Traffics\n',
     ];
     _causeList = (possibleCauseList..shuffle()).sublist(2);
+
+    _changeColor();
   }
 
   void _restart() {
