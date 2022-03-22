@@ -38,6 +38,7 @@ dependencies:
   path_provider: ^2.0.9
   vibration: 1.7.4-nullsafety.0
   http: ^0.13.4
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -91,3 +92,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  assets:
+    - .env
