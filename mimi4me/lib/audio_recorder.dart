@@ -4,7 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
-import 'request.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -17,6 +18,7 @@ class AudioRecorder extends StatefulWidget {
 
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
+  String _cause = "Unga Bunga";
   bool _isRecording = false;
   int _recordDuration = 0;
   Timer? _timer;
@@ -32,7 +34,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   @override
   void initState() {
     _isSaved = false;
-    _isRecording = false;
+    _isRecording = true;
     _start();
     super.initState();
   }
@@ -143,6 +145,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
       child: RichText(
         softWrap: true,
         text: TextSpan(
+          text: _cause,
           style: TextStyle(
             fontSize: 14.0,
             color: _color,
@@ -238,19 +241,19 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _vibrate;
   }
 
-  void _fetchResult() {
-    post(_audioRecorder);
+  void _fetchResult() async{
+    const url = 'http://127.0.0.1:5000/';
+    final post = await http.post(url, body: json.encode({'audio' : _audioRecorder}));
+    final response = await http.get(url);
+    final decoded = json.decode(response.body) as Map<String, dynamic>;
+
+    setState(() {
+      _cause = decoded['cause'];
+    });
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
     _noiseValue = nextNoiseValue(0, 200);
 
-    final List<String> possibleCauseList = [
-      'Conversation\n',
-      'Background Music\n',
-      'Car Hunks\n',
-      'Traffics\n',
-    ];
-    _causeList = (possibleCauseList..shuffle()).sublist(2);
 
     _changeColor();
   }
