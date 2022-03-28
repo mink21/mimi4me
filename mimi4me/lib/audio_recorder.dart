@@ -6,6 +6,7 @@ import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
+import 'dart:io';
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -23,6 +24,8 @@ class _AudioRecorderState extends State<AudioRecorder> {
   int _recordDuration = 0;
   Timer? _timer;
   final _path = "/data/user/0/com.example.mimi4me/cache/audio.mp4";
+  final dio = Dio();
+  var recorded = File("/data/user/0/com.example.mimi4me/cache/audio.mp4");
 
   Color _color = Colors.green;
   int _noiseValue = 0;
@@ -34,6 +37,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   @override
   void initState() {
+
     _isSaved = false;
     _isRecording = true;
     _start();
@@ -187,6 +191,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
       print("Force Stop");
       _stop();
       _isRecording = false;
+      recorded = File("/data/user/0/com.example.mimi4me/cache/audio.mp4");
     } else {
       print("Force Start");
       _start();
@@ -199,7 +204,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
       if (await _audioRecorder.hasPermission()) {
         await _audioRecorder.start(
           path: _path,
-          bitRate: 12800,
+          bitRate: 1280,
           //sampleRate: 44100,
         );
 
@@ -248,14 +253,15 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void _fetchResult() async{
+
     const url = 'http://10.0.2.2:5000/';
     FormData formData = FormData.fromMap({
-      "name" : "audio file",
-      "audio": await MultipartFile.fromFile(_path, filename: "audio.mp4", contentType: MediaType("audio", "mp4"))
+      //"name" : "audio file",
+      //"file": await MultipartFile.fromFile(_path, filename: 'audio.mp4', contentType: MediaType("audio", "mp4")),
+      "file": recorded
     });
-    //final post = await http.post(Uri.parse(url), body: json.encode({'audio' : _audioRecorder}));
-    final post = await Dio().post(url, data: formData);
-    final response = await Dio().get(url);
+    final post = await dio.post(url, data: formData);
+    final response = await dio.get(url);
     //final decoded = json.decode(response.body) as Map<String, dynamic>;
 
     setState(() {
