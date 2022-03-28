@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -22,6 +22,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   bool _isRecording = false;
   int _recordDuration = 0;
   Timer? _timer;
+  final _path = "/data/user/0/com.example.mimi4me/cache/audio.mp4";
 
   Color _color = Colors.green;
   int _noiseValue = 0;
@@ -163,11 +164,12 @@ class _AudioRecorderState extends State<AudioRecorder> {
     if (_isRecording) {
       icon = const Icon(Icons.stop, color: Colors.red, size: 30);
       color = Colors.red.withOpacity(0.1);
-    } else {
-      final theme = Theme.of(context);
-      icon = Icon(Icons.mic, color: theme.primaryColor, size: 30);
-      color = theme.primaryColor.withOpacity(0.1);
     }
+    // else {
+    //   final theme = Theme.of(context);
+    //   icon = Icon(Icons.mic, color: theme.primaryColor, size: 30);
+    //   color = theme.primaryColor.withOpacity(0.1);
+    // }
 
     return ClipOval(
       child: Material(
@@ -195,7 +197,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
   Future<void> _start() async {
     try {
       if (await _audioRecorder.hasPermission()) {
-        await _audioRecorder.start();
+        await _audioRecorder.start(
+          path: _path,
+          bitRate: 12800,
+          //sampleRate: 44100,
+        );
 
         setState(() {
           _isSaved = false;
@@ -211,7 +217,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Future<void> _stop() async {
     final path = await _audioRecorder.stop();
-
+    //print(path);
     widget.onStop(path!);
 
     setState(() {
@@ -242,13 +248,18 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void _fetchResult() async{
-    const url = 'http://127.0.0.1:5000/';
-    final post = await http.post(url, body: json.encode({'audio' : _audioRecorder}));
-    final response = await http.get(url);
-    final decoded = json.decode(response.body) as Map<String, dynamic>;
+    const url = 'http://10.0.2.2:5000/';
+    FormData formData = FormData.fromMap({
+      "name" : "audio file",
+      "audio": await MultipartFile.fromFile(_path, filename: "audio.mp4", contentType: MediaType("audio", "mp4"))
+    });
+    //final post = await http.post(Uri.parse(url), body: json.encode({'audio' : _audioRecorder}));
+    final post = await Dio().post(url, data: formData);
+    final response = await Dio().get(url);
+    //final decoded = json.decode(response.body) as Map<String, dynamic>;
 
     setState(() {
-      _cause = decoded['cause'];
+      _cause = response.data.toString();
     });
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
