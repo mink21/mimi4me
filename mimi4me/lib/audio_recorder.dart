@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -20,17 +21,17 @@ class AudioRecorder extends StatefulWidget {
 
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
-  String _cause = "Unga Bunga";
+  String _cause = "";
+  int _decibels = 0;
   bool _isRecording = false;
   int _recordDuration = 0;
   Timer? _timer;
   final _path = "/data/user/0/com.example.mimi4me/cache/audio.mp4";
   //final dio = Dio();
-  var recorded = File("/data/user/0/com.example.mimi4me/cache/audio.mp4");
+  List<String> _causeList = [];
 
   Color _color = Colors.green;
   int _noiseValue = 0;
-  List<String> _causeList = [];
 
   final _audioRecorder = Record();
   final _recordTime = 3;
@@ -192,7 +193,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
       print("Force Stop");
       _stop();
       _isRecording = false;
-      recorded = File("/data/user/0/com.example.mimi4me/cache/audio.mp4");
     } else {
       print("Force Start");
       _start();
@@ -254,7 +254,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void _fetchResult() async{
-
     const url = 'http://10.0.2.2:5000/';
     final uri = Uri.parse(url);
 
@@ -267,10 +266,13 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
     request.send();
     final response = await http.get(uri);
-
+    var data = jsonDecode(response.body);
 
     setState(() {
-      _cause = response.body.toString();
+      _cause = data["cause"];
+      _decibels = data["decibels"];
+      print(_cause);
+      print(_decibels);
     });
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
@@ -280,9 +282,9 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _changeColor();
   }
 
-  void _restart() {
+  void _restart() async{
     if (!_isSaved && _recordDuration >= _recordTime) {
-      _stop();
+      await _stop();
       _fetchResult();
     } else if (_isSaved && _recordDuration >= _sleepTime) {
       _start();

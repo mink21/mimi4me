@@ -14,10 +14,13 @@ causes = ['AC', 'Carn Horn', 'Kids Playing', 'Dog Bark', 'Drilling', 'Engine Idl
 feature = []
 label = []
 
-def parser():
-    global pair
-    X, sample_rate = librosa.load(path, res_type='kaiser_fast') 
-    # We extract mfcc feature from data
+decibels = 0
+
+def process():
+    #global decibels
+    X, sample_rate = librosa.load(path, res_type='kaiser_fast')
+    decibels = np.average(librosa.amplitude_to_db(X))
+    print(decibels)
     return np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0).reshape((1,16,8,1))     
 
 response = ''
@@ -27,21 +30,23 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def respond():
     global response
+    global decibels
     global causes
     if(request.method == 'POST'):
         #getting and saving file
         f = request.files.get('audio')
-        f.save(path)
+        if(f):
+            f.save(path)
+        else:
+            return " "
         #processing file
-        data = parser()
-        #Y = data[:, 1]
-        #Y = to_categorical(Y)
+        data = process()
         prediction = np.argmax(model.predict(data))
-
         response = f'{causes[prediction]}'
+        os.remove(path)
         return " "
     else:
-        return jsonify({'cause' : response})
+        return jsonify({'cause' : response, "decibels" : decibels})
 
 if __name__ == '__main__':
     app.run()
