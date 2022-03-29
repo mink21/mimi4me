@@ -276,7 +276,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
     _noiseValue = nextNoiseValue(0, 200);
 
-
     _changeColor();
   }
 
