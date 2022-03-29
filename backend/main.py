@@ -4,21 +4,21 @@ import librosa
 import librosa.display
 import numpy as np
 from tensorflow import keras
+from tensorflow.keras.utils import to_categorical 
 
 model = keras.models.load_model('C:\\Users\\khale\\Documents\\GitHub\\mimi4me\\backend\\')
+path = 'save.mp4'
 
-path = 'C:\\Users\\khale\\Desktop\\test\\save.mp4'
-#from tensorflow import keras
-feature = 0
-#model = keras.models.load_model('saved_model')
+causes = ['AC', 'Carn Horn', 'Kids Playing', 'Dog Bark', 'Drilling', 'Engine Idling', 'Gun Shot', 'Jackhammer', 'Siren', 'Street Music']
 
-def parser(row):
-    global feature
+feature = []
+label = []
+
+def parser():
+    global pair
     X, sample_rate = librosa.load(path, res_type='kaiser_fast') 
     # We extract mfcc feature from data
-    feature = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0)        
-    label.append(df["classID"][i])
-    return [feature, label]
+    return np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0).reshape((1,16,8,1))     
 
 response = ''
 
@@ -27,16 +27,18 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def respond():
     global response
+    global causes
     if(request.method == 'POST'):
-        print(request.files.keys())
-        print(request.form.keys())
+        #getting and saving file
         f = request.files.get('audio')
         f.save(path)
-        #request_data = json.loads(request_data.decode)
-        #audio = request_data['audio']
-        #audio = request.form['audio']
-        
-        response = f'Its working!!!!'
+        #processing file
+        data = parser()
+        #Y = data[:, 1]
+        #Y = to_categorical(Y)
+        prediction = np.argmax(model.predict(data))
+
+        response = f'{causes[prediction]}'
         return " "
     else:
         return jsonify({'cause' : response})
