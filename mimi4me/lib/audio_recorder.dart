@@ -33,7 +33,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   late Uri _uri;
 
   final _audioRecorder = Record();
-  final _recordTime = 5;
+  final _recordTime = 3;
 
   void get _apiUrl async {
     await dotenv.load(fileName: ".env");
