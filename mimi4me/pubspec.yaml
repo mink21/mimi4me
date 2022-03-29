@@ -37,8 +37,10 @@ dependencies:
   record: ^3.0.3
   path_provider: ^2.0.9
   vibration: 1.7.4-nullsafety.0
-  http: ^0.13.4
+  http:
+  #dio: ^4.0.4
   flutter_dotenv: ^5.0.2
+
 
 dev_dependencies:
   flutter_test:

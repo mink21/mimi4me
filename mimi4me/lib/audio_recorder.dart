@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
-import 'request.dart';
+//import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -17,13 +21,17 @@ class AudioRecorder extends StatefulWidget {
 
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
+  String _cause = "";
+  String _decibels = "";
   bool _isRecording = false;
   int _recordDuration = 0;
   Timer? _timer;
+  final _path = "/data/user/0/com.example.mimi4me/cache/audio.mp4";
+  //final dio = Dio();
+  List<String> _causeList = [];
 
   Color _color = Colors.green;
   int _noiseValue = 0;
-  List<String> _causeList = [];
 
   final _audioRecorder = Record();
   final _recordTime = 3;
@@ -31,8 +39,9 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   @override
   void initState() {
+
     _isSaved = false;
-    _isRecording = false;
+    _isRecording = true;
     _start();
     super.initState();
   }
@@ -143,6 +152,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
       child: RichText(
         softWrap: true,
         text: TextSpan(
+          text: _cause,
           style: TextStyle(
             fontSize: 14.0,
             color: _color,
@@ -160,11 +170,12 @@ class _AudioRecorderState extends State<AudioRecorder> {
     if (_isRecording) {
       icon = const Icon(Icons.stop, color: Colors.red, size: 30);
       color = Colors.red.withOpacity(0.1);
-    } else {
-      final theme = Theme.of(context);
-      icon = Icon(Icons.mic, color: theme.primaryColor, size: 30);
-      color = theme.primaryColor.withOpacity(0.1);
     }
+    // else {
+    //   final theme = Theme.of(context);
+    //   icon = Icon(Icons.mic, color: theme.primaryColor, size: 30);
+    //   color = theme.primaryColor.withOpacity(0.1);
+    // }
 
     return ClipOval(
       child: Material(
@@ -192,7 +203,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
   Future<void> _start() async {
     try {
       if (await _audioRecorder.hasPermission()) {
-        await _audioRecorder.start();
+        await _audioRecorder.start(
+          path: _path,
+          bitRate: 1280,
+          //sampleRate: 44100,
+        );
 
         setState(() {
           _isSaved = false;
@@ -208,7 +223,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Future<void> _stop() async {
     final path = await _audioRecorder.stop();
-
+    //print(path);
     widget.onStop(path!);
 
     setState(() {
@@ -238,26 +253,35 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _vibrate;
   }
 
-  void _fetchResult() {
-    post(_audioRecorder);
+  void _fetchResult() async{
+    const url = 'http://10.0.2.2:5000/';
+    final uri = Uri.parse(url);
+
+    var request = http.MultipartRequest("POST", uri);
+    request.files.add(await http.MultipartFile.fromPath(
+      'audio',
+      _path,
+      contentType: MediaType('audio', 'mp4'),
+    ));
+
+    request.send();
+    final response = await http.get(uri);
+    var data = jsonDecode(response.body);
+
+    setState(() {
+      _cause = data["cause"];
+      _decibels = data["decibels"];
+    });
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
     _noiseValue = nextNoiseValue(0, 200);
 
-    final List<String> possibleCauseList = [
-      'Conversation\n',
-      'Background Music\n',
-      'Car Honks\n',
-      'Traffics\n',
-    ];
-    _causeList = (possibleCauseList..shuffle()).sublist(2);
-
     _changeColor();
   }
 
-  void _restart() {
+  void _restart() async{
     if (!_isSaved && _recordDuration >= _recordTime) {
-      _stop();
+      await _stop();
       _fetchResult();
     } else if (_isSaved && _recordDuration >= _sleepTime) {
       _start();
