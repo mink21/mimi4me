@@ -1,21 +1,23 @@
 from flask import Flask, jsonify, json, request
 import os;
+import librosa
+import librosa.display
+import numpy as np
+from tensorflow import keras
+
+model = keras.models.load_model('C:\\Users\\khale\\Documents\\GitHub\\mimi4me\\backend\\')
 
 path = 'C:\\Users\\khale\\Desktop\\test\\save.mp4'
 #from tensorflow import keras
-
+feature = 0
 #model = keras.models.load_model('saved_model')
 
 def parser(row):
-    # Function to load files and extract features
-    for i in range(8732):
-        file_name = 'fold' + str(df["fold"][i]) + '/' + df["slice_file_name"][i]
-        # Here kaiser_fast is a technique used for faster extraction
-        X, sample_rate = librosa.load(file_name, res_type='kaiser_fast') 
-        # We extract mfcc feature from data
-        mels = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0)        
-        feature.append(mels)
-        label.append(df["classID"][i])
+    global feature
+    X, sample_rate = librosa.load(path, res_type='kaiser_fast') 
+    # We extract mfcc feature from data
+    feature = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0)        
+    label.append(df["classID"][i])
     return [feature, label]
 
 response = ''
