@@ -12,7 +12,7 @@ Solution Challenge 2022
 - python 3 installed
 - ngrok installed - Download from https://ngrok.com/download
 
-### How to run
+### How to run(locally)
 1. Go to the backend folder
 ``` 
 cd backend
@@ -65,7 +65,8 @@ dart pub get
 3. Enter environmental variables [.env](/mimi4me/.env). (The apiUrl below is obtained to tunnel using ngrok server)
 
 ```
-apiUrl=https://sample.ngrok.io
+apiUrl=https://sample.ngrok.io -> local server
+apiUrl=https://murmuring-hamlet-18265.herokuapp.com/ -> deployed server
 ```
 4. Run the app on your device
 ```

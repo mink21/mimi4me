@@ -30,7 +30,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   String _cause = "";
   late String _path;
-  var _uri;
+  late Uri _uri;
 
   final _audioRecorder = Record();
   final _recordTime = 5;
