@@ -271,8 +271,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
     setState(() {
       _cause = data["cause"];
       _decibels = data["decibels"];
-      print(_cause);
-      print(_decibels);
     });
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
