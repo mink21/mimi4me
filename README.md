@@ -7,8 +7,36 @@ Solution Challenge 2022
 # How to run
 
 ## Backend
-- python 3 installed
 
+### Requirements
+- python 3 installed
+- ngrok installed - Download from https://ngrok.com/download
+
+### How to run
+1. Go to the backend folder
+``` 
+cd backend
+```
+2. Install required libraries
+```
+pip install -r requirements.txt
+```
+3. Run the flask server
+```
+python main.py
+```
+4. Run ngrok server
+```
+ngrok http http://127.0.0.1:5000/
+```
+5. Copy https tunnel made by ngrok server 
+```
+Forwarding                    https://269f-2405-6581-9960-6500-3dcc-3085-257e-5d24.ngrok.io -> http://127.0.0.1:5000
+
+In above case,
+https://269f-2405-6581-9960-6500-3dcc-3085-257e-5d24.ngrok.io
+```
+6. Proceed to the Frontend Execution
 
 ## Frontend
 
