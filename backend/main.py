@@ -17,10 +17,9 @@ label = []
 decibels = 0
 
 def process():
-    #global decibels
+    global decibels
     X, sample_rate = librosa.load(path, res_type='kaiser_fast')
     decibels = np.average(librosa.amplitude_to_db(X))
-    print(decibels)
     return np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0).reshape((1,16,8,1))     
 
 response = ''
@@ -30,7 +29,6 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def respond():
     global response
-    global decibels
     global causes
     if(request.method == 'POST'):
         #getting and saving file
