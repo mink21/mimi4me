@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: _title,
+      debugShowCheckedModeBanner: false,
       home: HomePage(),
     );
   }
@@ -37,9 +38,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
       body: AudioRecorder(
         onStop: (path) {},
       ),

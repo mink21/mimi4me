@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
-//import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class AudioRecorder extends StatefulWidget {
@@ -19,29 +16,48 @@ class AudioRecorder extends StatefulWidget {
   _AudioRecorderState createState() => _AudioRecorderState();
 }
 
+const url = 'http://d10c-2405-6581-9960-6500-3dcc-3085-257e-5d24.ngrok.io';
+final uri = Uri.parse(url);
+
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
-  String _cause = "";
-  String _decibels = "";
+  bool _isfetched = false;
   bool _isRecording = false;
-  int _recordDuration = 0;
-  Timer? _timer;
-  final _path = "/data/user/0/com.example.mimi4me/cache/audio.mp4";
-  //final dio = Dio();
-  List<String> _causeList = [];
 
+  int _decibels = 0;
+  int _recordDuration = 0;
+
+  Timer? _timer;
   Color _color = Colors.green;
-  int _noiseValue = 0;
+
+  String _cause = "";
+  late String _path;
 
   final _audioRecorder = Record();
-  final _recordTime = 3;
-  final _sleepTime = 3;
+  final _recordTime = 5;
+
+  void get _localPath async {
+    final directory = await getExternalCacheDirectories();
+    setState(() {
+      _path = directory![0].path + "/audio.mp4";
+    });
+  }
+
+  void _tapFunction() {
+    if (_isRecording) {
+      _stop();
+      _isRecording = false;
+    } else {
+      _start();
+      _isRecording = true;
+    }
+  }
 
   @override
   void initState() {
-
     _isSaved = false;
-    _isRecording = true;
+    _isRecording = false;
+    _localPath;
     _start();
     super.initState();
   }
@@ -57,23 +73,33 @@ class _AudioRecorderState extends State<AudioRecorder> {
   Widget build(BuildContext context) {
     if (_isRecording) _restart();
     return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: const Alignment(0, 2),
-            end: const Alignment(0, -0.7),
-            colors: [
-              _color.withOpacity(0.3),
-              Colors.white,
-            ],
-          ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: const Alignment(0, 2),
+          end: const Alignment(0, -0.7),
+          colors: [
+            _color.withOpacity(0.3),
+            Colors.white,
+          ],
         ),
-        child: Stack(children: [
-          Align(alignment: Alignment.center, child: _buildRecord()),
+      ),
+      child: Stack(
+        children: [
           Align(
-              alignment: Alignment.topCenter,
-              child: _buildDecibel(_noiseValue)),
-          Positioned(top: 400, child: _buildCauses(_causeList))
-        ]));
+            alignment: Alignment.center,
+            child: _buildRecord(),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: _buildDecibel(_decibels),
+          ),
+          Positioned(
+            top: 400,
+            child: _buildCauses(_cause),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _buildDecibel(int noiseValue) {
@@ -128,36 +154,33 @@ class _AudioRecorderState extends State<AudioRecorder> {
     );
   }
 
-  Widget _buildCauses(List<String> causesList) {
+  Widget _buildCauses(String cause) {
+    if (cause == "") {
+      return Container();
+    }
+
     const _style = TextStyle(
         overflow: TextOverflow.ellipsis,
         fontWeight: FontWeight.bold,
         fontSize: 30);
 
-    var _list = causesList
-        .map((String cause) => TextSpan(text: cause, style: _style))
-        .toList();
-    if (_noiseValue > 0) {
-      _list.insert(
-          0,
-          const TextSpan(
-              text: 'Possible Cause\n',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20)));
-    }
     return Container(
       padding: const EdgeInsets.only(left: 60.0, top: 30.0),
       child: RichText(
         softWrap: true,
         text: TextSpan(
-          text: _cause,
-          style: TextStyle(
-            fontSize: 14.0,
-            color: _color,
+          text: 'Possible Cause\n',
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
-          children: _list,
+          children: [
+            TextSpan(
+              text: cause,
+              style: _style,
+            ),
+          ],
         ),
       ),
     );
@@ -170,12 +193,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
     if (_isRecording) {
       icon = const Icon(Icons.stop, color: Colors.red, size: 30);
       color = Colors.red.withOpacity(0.1);
+    } else {
+      final theme = Theme.of(context);
+      icon = Icon(Icons.mic, color: theme.primaryColor, size: 30);
+      color = theme.primaryColor.withOpacity(0.1);
     }
-    // else {
-    //   final theme = Theme.of(context);
-    //   icon = Icon(Icons.mic, color: theme.primaryColor, size: 30);
-    //   color = theme.primaryColor.withOpacity(0.1);
-    // }
 
     return ClipOval(
       child: Material(
@@ -188,42 +210,25 @@ class _AudioRecorderState extends State<AudioRecorder> {
     );
   }
 
-  void _tapFunction() {
-    if (_isRecording) {
-      print("Force Stop");
-      _stop();
-      _isRecording = false;
-    } else {
-      print("Force Start");
-      _start();
-      _isRecording = true;
-    }
-  }
-
   Future<void> _start() async {
-    try {
-      if (await _audioRecorder.hasPermission()) {
-        await _audioRecorder.start(
-          path: _path,
-          bitRate: 1280,
-          //sampleRate: 44100,
-        );
+    if (await _audioRecorder.hasPermission()) {
+      await _audioRecorder.start(
+        path: _path,
+        bitRate: 1280,
+      );
 
-        setState(() {
-          _isSaved = false;
-          _recordDuration = 0;
-        });
+      setState(() {
+        _isSaved = false;
+        _isfetched = false;
+        _recordDuration = 0;
+      });
 
-        _startTimer();
-      }
-    } catch (e) {
-      print(e);
+      _startTimer();
     }
   }
 
   Future<void> _stop() async {
     final path = await _audioRecorder.stop();
-    //print(path);
     widget.onStop(path!);
 
     setState(() {
@@ -232,31 +237,27 @@ class _AudioRecorderState extends State<AudioRecorder> {
     });
   }
 
-  void _vibrate() async {
+  Future<void> _vibrate() async {
     bool? _hasVibrator = await Vibration.hasVibrator();
-    print(_hasVibrator);
     if (_hasVibrator != null && _hasVibrator) {
       Vibration.vibrate(duration: 2000);
     }
   }
 
-  void _changeColor() {
-    if (_noiseValue >= 140) {
+  Future<void> _changeColor() async {
+    if (_decibels >= 140) {
       _color = Colors.red;
-    } else if (_noiseValue > 100) {
+    } else if (_decibels > 100) {
       _color = Colors.orange;
-    } else if (_noiseValue > 60) {
+    } else if (_decibels > 60) {
       _color = Colors.yellow;
     } else {
       _color = Colors.green;
     }
-    _vibrate;
+    await _vibrate();
   }
 
-  void _fetchResult() async{
-    const url = 'http://10.0.2.2:5000/';
-    final uri = Uri.parse(url);
-
+  Future<void> _postResult() async {
     var request = http.MultipartRequest("POST", uri);
     request.files.add(await http.MultipartFile.fromPath(
       'audio',
@@ -264,29 +265,29 @@ class _AudioRecorderState extends State<AudioRecorder> {
       contentType: MediaType('audio', 'mp4'),
     ));
 
-    request.send();
+    await request.send();
+  }
+
+  Future<void> _fetchResult() async {
     final response = await http.get(uri);
     var data = jsonDecode(response.body);
-
     setState(() {
-      _cause = data["cause"];
       _decibels = data["decibels"];
+      if (_decibels > 0) _cause = data["cause"];
+      _isfetched = true;
     });
-    final _random = Random();
-    int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
-    _noiseValue = nextNoiseValue(0, 200);
 
     _changeColor();
   }
 
-  void _restart() async{
+  void _restart() async {
     if (!_isSaved && _recordDuration >= _recordTime) {
       await _stop();
-      _fetchResult();
-    } else if (_isSaved && _recordDuration >= _sleepTime) {
-      _start();
+      await _postResult();
+      await _fetchResult();
+    } else if (_isSaved && _isfetched) {
+      await _start();
     }
-    print(_recordDuration);
   }
 
   void _startTimer() {
