@@ -4,9 +4,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
-import 'package:dio/dio.dart';
+//import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -24,7 +25,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   int _recordDuration = 0;
   Timer? _timer;
   final _path = "/data/user/0/com.example.mimi4me/cache/audio.mp4";
-  final dio = Dio();
+  //final dio = Dio();
   var recorded = File("/data/user/0/com.example.mimi4me/cache/audio.mp4");
 
   Color _color = Colors.green;
@@ -255,17 +256,21 @@ class _AudioRecorderState extends State<AudioRecorder> {
   void _fetchResult() async{
 
     const url = 'http://10.0.2.2:5000/';
-    FormData formData = FormData.fromMap({
-      //"name" : "audio file",
-      //"file": await MultipartFile.fromFile(_path, filename: 'audio.mp4', contentType: MediaType("audio", "mp4")),
-      "file": recorded
-    });
-    final post = await dio.post(url, data: formData);
-    final response = await dio.get(url);
-    //final decoded = json.decode(response.body) as Map<String, dynamic>;
+    final uri = Uri.parse(url);
+
+    var request = http.MultipartRequest("POST", uri);
+    request.files.add(await http.MultipartFile.fromPath(
+      'audio',
+      _path,
+      contentType: MediaType('audio', 'mp4'),
+    ));
+
+    request.send();
+    final response = await http.get(uri);
+
 
     setState(() {
-      _cause = response.data.toString();
+      _cause = response.body.toString();
     });
     final _random = Random();
     int nextNoiseValue(int min, int max) => min + _random.nextInt(max - min);
