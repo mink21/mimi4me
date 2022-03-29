@@ -22,7 +22,7 @@ class AudioRecorder extends StatefulWidget {
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
   String _cause = "";
-  int _decibels = 0;
+  String _decibels = "";
   bool _isRecording = false;
   int _recordDuration = 0;
   Timer? _timer;

@@ -10,19 +10,16 @@ model = keras.models.load_model('C:\\Users\\khale\\Documents\\GitHub\\mimi4me\\b
 path = 'save.mp4'
 
 causes = ['AC', 'Carn Horn', 'Kids Playing', 'Dog Bark', 'Drilling', 'Engine Idling', 'Gun Shot', 'Jackhammer', 'Siren', 'Street Music']
-
-feature = []
-label = []
-
-decibels = 0
+decibels = ""
+response = ""
 
 def process():
     global decibels
     X, sample_rate = librosa.load(path, res_type='kaiser_fast')
-    decibels = np.average(librosa.amplitude_to_db(X))
+    decibels = f'{np.average(librosa.amplitude_to_db(X))}'
     return np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0).reshape((1,16,8,1))     
 
-response = ''
+
 
 app = Flask(__name__)
 
@@ -33,10 +30,7 @@ def respond():
     if(request.method == 'POST'):
         #getting and saving file
         f = request.files.get('audio')
-        if(f):
-            f.save(path)
-        else:
-            return " "
+        f.save(path)
         #processing file
         data = process()
         prediction = np.argmax(model.predict(data))
