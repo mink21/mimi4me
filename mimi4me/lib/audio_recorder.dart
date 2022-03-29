@@ -6,6 +6,7 @@ import 'package:record/record.dart';
 import 'package:vibration/vibration.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -15,9 +16,6 @@ class AudioRecorder extends StatefulWidget {
   @override
   _AudioRecorderState createState() => _AudioRecorderState();
 }
-
-const url = 'http://d10c-2405-6581-9960-6500-3dcc-3085-257e-5d24.ngrok.io';
-final uri = Uri.parse(url);
 
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
@@ -32,9 +30,18 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   String _cause = "";
   late String _path;
+  var _uri;
 
   final _audioRecorder = Record();
   final _recordTime = 5;
+
+  void get _apiUrl async {
+    await dotenv.load(fileName: ".env");
+    final url = dotenv.env['apiUrl']!;
+    setState(() {
+      _uri = Uri.parse(url);
+    });
+  }
 
   void get _localPath async {
     final directory = await getExternalCacheDirectories();
@@ -58,6 +65,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _isSaved = false;
     _isRecording = false;
     _localPath;
+    _apiUrl;
     _start();
     super.initState();
   }
@@ -258,7 +266,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _postResult() async {
-    var request = http.MultipartRequest("POST", uri);
+    var request = http.MultipartRequest("POST", _uri);
     request.files.add(await http.MultipartFile.fromPath(
       'audio',
       _path,
@@ -269,7 +277,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _fetchResult() async {
-    final response = await http.get(uri);
+    final response = await http.get(_uri);
     var data = jsonDecode(response.body);
     setState(() {
       _decibels = data["decibels"];
