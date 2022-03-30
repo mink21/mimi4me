@@ -253,14 +253,14 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _changeColor() async {
-    if (_decibels >= 140) {
+    if (_decibels >= 120) {
       _color = Colors.red;
-    } else if (_decibels > 100) {
-      _color = Colors.orange;
-    } else if (_decibels > 60) {
+    } else if (_decibels > 90) {
       _color = Colors.yellow;
-    } else {
+    } else if (_decibels > 60) {
       _color = Colors.green;
+    } else {
+      _color = Colors.blue;
     }
     await _vibrate();
   }
