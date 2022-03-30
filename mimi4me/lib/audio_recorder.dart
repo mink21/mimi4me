@@ -7,6 +7,7 @@ import 'package:vibration/vibration.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -33,7 +34,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   late Uri _uri;
 
   final _audioRecorder = Record();
-  final _recordTime = 3;
+  final _recordTime = 5;
 
   void get _apiUrl async {
     await dotenv.load(fileName: ".env");
@@ -104,7 +105,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
           Positioned(
             top: 400,
             child: _buildCauses(_cause),
-          )
+          ),
         ],
       ),
     );
@@ -163,8 +164,15 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Widget _buildCauses(String cause) {
+    if (!_isRecording) return Container();
     if (cause == "") {
-      return Container();
+      return Padding(
+        padding: const EdgeInsets.only(left: 155, top: 100),
+        child: SpinKitCircle(
+          color: _color,
+          size: 50.0,
+        ),
+      );
     }
 
     const _style = TextStyle(
@@ -172,25 +180,43 @@ class _AudioRecorderState extends State<AudioRecorder> {
         fontWeight: FontWeight.bold,
         fontSize: 30);
 
-    return Container(
-      padding: const EdgeInsets.only(left: 60.0, top: 30.0),
-      child: RichText(
-        softWrap: true,
-        text: TextSpan(
-          text: 'Possible Cause\n',
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-          children: [
-            TextSpan(
-              text: cause,
-              style: _style,
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.only(left: 60.0, top: 30.0),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            transitionBuilder: (child, animation) {
+              return ScaleTransition(child: child, scale: animation);
+            },
+            child: RichText(
+              softWrap: true,
+              key: ValueKey<String>(cause),
+              text: TextSpan(
+                text: 'Possible Cause\n',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+                children: [
+                  TextSpan(
+                    text: cause,
+                    style: _style,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.only(left: 155, top: 140),
+          child: SpinKitCircle(
+            color: _color,
+            size: 50.0,
+          ),
+        ),
+      ],
     );
   }
 
@@ -253,16 +279,18 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _changeColor() async {
-    if (_decibels >= 120) {
+    if (_decibels >= 90) {
       _color = Colors.red;
-    } else if (_decibels > 90) {
+      await _vibrate();
+    } else if (_decibels > 60) {
+      _color = Colors.orange;
+    } else if (_decibels > 40) {
       _color = Colors.yellow;
     } else if (_decibels > 60) {
       _color = Colors.green;
     } else {
       _color = Colors.blue;
     }
-    await _vibrate();
   }
 
   Future<void> _postResult() async {
