@@ -20,8 +20,10 @@ class AudioRecorder extends StatefulWidget {
 
 class _AudioRecorderState extends State<AudioRecorder> {
   bool _isSaved = false;
-  bool _isfetched = false;
+  bool _isPosted = false;
+  bool _isFetched = false;
   bool _isRecording = false;
+  bool _networkError = false;
 
   int _decibels = 0;
   int _recordDuration = 0;
@@ -32,7 +34,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
   String _cause = "";
   late String _path;
   late Uri _uri;
-
   final _audioRecorder = Record();
   final _recordTime = 5;
 
@@ -54,10 +55,14 @@ class _AudioRecorderState extends State<AudioRecorder> {
   void _tapFunction() {
     if (_isRecording) {
       _stop();
-      _isRecording = false;
+      setState(() {
+        _isRecording = false;
+      });
     } else {
       _start();
-      _isRecording = true;
+      setState(() {
+        _isRecording = true;
+      });
     }
   }
 
@@ -78,32 +83,39 @@ class _AudioRecorderState extends State<AudioRecorder> {
     super.dispose();
   }
 
+  LinearGradient get _gradientColor {
+    return LinearGradient(
+      begin: const Alignment(0, 2),
+      end: const Alignment(0, -0.7),
+      colors: [
+        _color.withOpacity(0.3),
+        Colors.white,
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isRecording) _restart();
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(seconds: 2),
+      curve: Curves.fastOutSlowIn,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: const Alignment(0, 2),
-          end: const Alignment(0, -0.7),
-          colors: [
-            _color.withOpacity(0.3),
-            Colors.white,
-          ],
-        ),
+        gradient: _gradientColor,
       ),
-      child: Stack(
+      child: Column(
         children: [
-          Align(
-            alignment: Alignment.center,
+          Container(
+            margin: const EdgeInsets.only(bottom: 15),
+            child: _buildDecibel(_decibels),
+          ),
+          Container(
+            margin: const EdgeInsets.only(bottom: 20),
             child: _buildRecord(),
           ),
           Align(
-            alignment: Alignment.topCenter,
-            child: _buildDecibel(_decibels),
-          ),
-          Positioned(
-            top: 400,
+            alignment: Alignment.bottomLeft,
             child: _buildCauses(_cause),
           ),
         ],
@@ -111,42 +123,50 @@ class _AudioRecorderState extends State<AudioRecorder> {
     );
   }
 
+  BoxDecoration get _boxDecoration {
+    return BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(
+        width: 30.0,
+        color: _color,
+      ),
+    );
+  }
+
   Widget _buildDecibel(int noiseValue) {
     return Stack(
       children: [
-        Container(
-            margin: const EdgeInsets.only(top: 60.0),
-            padding: const EdgeInsets.all(10.0),
-            width: 270.0,
-            height: 270.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                width: 30.0,
-                color: _color,
+        AnimatedContainer(
+          duration: const Duration(seconds: 2),
+          curve: Curves.bounceOut,
+          margin: const EdgeInsets.only(top: 60.0),
+          padding: const EdgeInsets.all(10.0),
+          width: 270.0,
+          height: 270.0,
+          decoration: _boxDecoration,
+          child: Align(
+            alignment: Alignment.center,
+            child: RichText(
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 14.0,
+                  color: _color,
+                ),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: noiseValue.toString(),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 60)),
+                  const TextSpan(text: 'db'),
+                ],
               ),
             ),
-            child: Align(
-              alignment: Alignment.center,
-              child: RichText(
-                maxLines: 1,
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    color: _color,
-                  ),
-                  children: <TextSpan>[
-                    TextSpan(
-                        text: noiseValue.toString(),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 60)),
-                    const TextSpan(text: 'db'),
-                  ],
-                ),
-              ),
-            )),
-        Positioned(
+          ),
+        ),
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 10),
           bottom: 5,
           left: 125,
           child: Container(
@@ -165,56 +185,59 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Widget _buildCauses(String cause) {
     if (!_isRecording) return Container();
+
+    Widget _loadingCircle = SpinKitCircle(
+      color: _color.withOpacity(1.0),
+      size: 50.0,
+    );
     if (cause == "") {
-      return Padding(
-        padding: const EdgeInsets.only(left: 155, top: 100),
-        child: SpinKitCircle(
-          color: _color,
-          size: 50.0,
-        ),
-      );
+      return _loadingCircle;
     }
-
+    if (!_isRecording) {
+      _loadingCircle = Container();
+    }
     const _style = TextStyle(
-        overflow: TextOverflow.ellipsis,
-        fontWeight: FontWeight.bold,
-        fontSize: 30);
+      overflow: TextOverflow.ellipsis,
+      fontWeight: FontWeight.bold,
+      fontSize: 30,
+    );
 
-    return Stack(
+    return Column(
       children: [
         Container(
-          padding: const EdgeInsets.only(left: 60.0, top: 30.0),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            transitionBuilder: (child, animation) {
-              return ScaleTransition(child: child, scale: animation);
-            },
-            child: RichText(
-              softWrap: true,
-              key: ValueKey<String>(cause),
-              text: TextSpan(
-                text: 'Possible Cause\n',
-                style: const TextStyle(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 60),
+          child: Stack(
+            children: [
+              const Text(
+                'Possible Cause',
+                style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
-                children: [
-                  TextSpan(
-                    text: cause,
-                    style: _style,
-                  ),
-                ],
               ),
-            ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 700),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(
+                    child: child,
+                    scale: animation,
+                    alignment: Alignment.centerLeft,
+                  );
+                },
+                child: Text(
+                  '\n$cause',
+                  key: ValueKey<String>(cause),
+                  style: _style,
+                ),
+              ),
+            ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: 155, top: 140),
-          child: SpinKitCircle(
-            color: _color,
-            size: 50.0,
-          ),
+        Container(
+          margin: const EdgeInsets.only(top: 30),
+          child: _loadingCircle,
         ),
       ],
     );
@@ -253,7 +276,8 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
       setState(() {
         _isSaved = false;
-        _isfetched = false;
+        _isFetched = false;
+        _networkError = false;
         _recordDuration = 0;
       });
 
@@ -280,16 +304,26 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Future<void> _changeColor() async {
     if (_decibels >= 90) {
-      _color = Colors.red;
+      setState(() {
+        _color = Colors.red;
+      });
       await _vibrate();
     } else if (_decibels > 60) {
-      _color = Colors.orange;
-    } else if (_decibels > 40) {
-      _color = Colors.yellow;
-    } else if (_decibels > 60) {
-      _color = Colors.green;
+      setState(() {
+        _color = Colors.orange;
+      });
+    } else if (_decibels > 35) {
+      setState(() {
+        _color = Colors.yellow;
+      });
+    } else if (_decibels > 30) {
+      setState(() {
+        _color = Colors.green;
+      });
     } else {
-      _color = Colors.blue;
+      setState(() {
+        _color = Colors.blue;
+      });
     }
   }
 
@@ -301,16 +335,21 @@ class _AudioRecorderState extends State<AudioRecorder> {
       contentType: MediaType('audio', 'mp4'),
     ));
 
-    await request.send();
+    final response = await request.send();
+    setState(() {
+      _isPosted = response.statusCode == 200;
+      _networkError = response.statusCode == 200;
+    });
   }
 
   Future<void> _fetchResult() async {
+    if (!_isPosted) return;
     final response = await http.get(_uri);
     var data = jsonDecode(response.body);
     setState(() {
       _decibels = data["decibels"];
-      if (_decibels > 0) _cause = data["cause"];
-      _isfetched = true;
+      _cause = _decibels > 0 ? data["cause"] : "None";
+      _isFetched = true;
     });
 
     _changeColor();
@@ -321,7 +360,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
       await _stop();
       await _postResult();
       await _fetchResult();
-    } else if (_isSaved && _isfetched) {
+    } else if (_isSaved && _isFetched) {
       await _start();
     }
   }

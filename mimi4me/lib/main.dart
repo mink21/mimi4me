@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'audio_recorder.dart';
+import 'dart:async';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 Future main() async {
   runApp(const MyApp());
@@ -30,15 +32,81 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
+    _startTimer();
+    _finishStartup = false;
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  final _startUpTime = 10;
+  int _timerSec = 0;
+  bool _finishStartup = false;
+  Timer? _timer;
+
+  Widget _buildStartup() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Center(
+          child: Text(
+            "MIMI4ME",
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 10),
+          child: const SpinKitWave(
+            color: Colors.white,
+            type: SpinKitWaveType.start,
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool get _checkStartUp {
+    setState(() {
+      _finishStartup = _timerSec <= _startUpTime;
+    });
+    return _finishStartup;
+  }
+
+  Widget _buildMain() {
     return Scaffold(
       body: AudioRecorder(
         onStop: (path) {},
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _checkStartUp;
+    return Stack(
+      children: [
+        AnimatedOpacity(
+          opacity: _finishStartup ? 1.0 : 0.0,
+          duration: const Duration(seconds: 1),
+          child: _buildStartup(),
+        ),
+        AnimatedOpacity(
+          opacity: _finishStartup ? 0.0 : 1.0,
+          duration: const Duration(seconds: 1),
+          child: _buildMain(),
+        ),
+      ],
+    );
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      setState(() => {if (_timerSec <= _startUpTime) _timerSec++});
+    });
   }
 }
