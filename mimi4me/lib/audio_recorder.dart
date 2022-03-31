@@ -8,6 +8,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AudioRecorder extends StatefulWidget {
   final void Function(String path) onStop;
@@ -24,12 +25,13 @@ class _AudioRecorderState extends State<AudioRecorder> {
   bool _isFetched = false;
   bool _isRecording = false;
   bool _networkError = false;
+  bool _isMicon = false;
 
   int _decibels = 0;
   int _recordDuration = 0;
 
   Timer? _timer;
-  Color _color = Colors.green;
+  Color _color = Colors.blue;
 
   String _cause = "";
   late String _path;
@@ -52,6 +54,13 @@ class _AudioRecorderState extends State<AudioRecorder> {
     });
   }
 
+  void _checkPermission() async {
+    final serviceStatus = await Permission.microphone.status;
+    setState(() {
+      _isMicon = serviceStatus == ServiceStatus.enabled;
+    });
+  }
+
   void _tapFunction() {
     if (_isRecording) {
       _stop();
@@ -60,9 +69,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
       });
     } else {
       _start();
-      setState(() {
-        _isRecording = true;
-      });
+      if (_isMicon) {
+        setState(() {
+          _isRecording = true;
+        });
+      }
     }
   }
 
@@ -73,6 +84,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _localPath;
     _apiUrl;
     _start();
+    _checkPermission();
     super.initState();
   }
 
@@ -246,7 +258,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
   Widget _buildRecord() {
     late Icon icon;
     late Color color;
-
     if (_isRecording) {
       icon = const Icon(Icons.stop, color: Colors.red, size: 30);
       color = Colors.red.withOpacity(0.1);
@@ -268,13 +279,15 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _start() async {
-    if (await _audioRecorder.hasPermission()) {
+    _isMicon = await _audioRecorder.hasPermission();
+    if (_isMicon) {
       await _audioRecorder.start(
         path: _path,
         bitRate: 1280,
       );
 
       setState(() {
+        _isMicon = true;
         _isSaved = false;
         _isFetched = false;
         _networkError = false;

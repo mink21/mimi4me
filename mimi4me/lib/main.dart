@@ -52,15 +52,13 @@ class _HomePageState extends State<HomePage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Center(
-          child: Text(
-            "MIMI4ME",
-          ),
+        Center(
+          child: Image.asset('assets/image/icon-large.PNG'),
         ),
         Container(
           margin: const EdgeInsets.only(top: 10),
-          child: const SpinKitWave(
-            color: Colors.white,
+          child: SpinKitWave(
+            color: Colors.lightBlue.shade400,
             type: SpinKitWaveType.start,
           ),
         ),
@@ -86,19 +84,22 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     _checkStartUp;
-    return Stack(
-      children: [
-        AnimatedOpacity(
-          opacity: _finishStartup ? 1.0 : 0.0,
-          duration: const Duration(seconds: 1),
-          child: _buildStartup(),
-        ),
-        AnimatedOpacity(
-          opacity: _finishStartup ? 0.0 : 1.0,
-          duration: const Duration(seconds: 1),
-          child: _buildMain(),
-        ),
-      ],
+    return Container(
+      color: Colors.white,
+      child: Stack(
+        children: [
+          AnimatedOpacity(
+            opacity: _finishStartup ? 1.0 : 0.0,
+            duration: const Duration(seconds: 1),
+            child: _buildStartup(),
+          ),
+          AnimatedOpacity(
+            opacity: _finishStartup ? 0.0 : 1.0,
+            duration: const Duration(seconds: 1),
+            child: _buildMain(),
+          ),
+        ],
+      ),
     );
   }
 
