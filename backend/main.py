@@ -24,17 +24,25 @@ def process():
     second = []
     for s in range(0,len(x),sample_rate):
         second.append( np.abs(x[s:s+sample_rate]).mean())   
-    noise = np.average(librosa.amplitude_to_db(x))
+    noise_max = int(max(librosa.amplitude_to_db(x)) + 100)
+    noise_min = int(min(librosa.amplitude_to_db(x)) + 100)
+    noise_mean = int(np.mean(librosa.amplitude_to_db(x)) + 100)
     data = np.mean(librosa.feature.melspectrogram(
         y=x, sr=sample_rate).T, axis=0
     ).reshape((1, 16, 8, 1))
 
-    noise += 100
+    if noise_min == 0 or noise_mean*2 < noise_max:
+        noise = noise_max - noise_mean
+    else:
+        noise = noise_mean
+    if noise_max > 80:
+        noise = noise_max
+    
+
     DECIBELS = int(noise)
 
     prediction = np.argmax(MODEL.predict(data))
     CAUSE = f'{CAUSES[prediction]}'
-    print(DECIBELS,CAUSE)
 
 app = Flask(__name__)
 
@@ -52,7 +60,6 @@ def respond():
         return ""
     else:
         return jsonify({'cause': CAUSE, "decibels": DECIBELS})
-
 
 if __name__ == '__main__':
     app.run()
