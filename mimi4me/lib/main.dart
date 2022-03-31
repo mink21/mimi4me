@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  bool get _checkStartUp {
+  Future<bool> get _checkStartUp async {
     setState(() {
       _finishStartup = _timerSec <= _startUpTime;
     });
