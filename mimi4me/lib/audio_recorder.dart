@@ -29,12 +29,12 @@ class _AudioRecorderState extends State<AudioRecorder> {
   int _decibels = 0;
   int _recordDuration = 0;
 
-  Timer? _timer;
   Color _color = Colors.blue;
 
   String _cause = "";
 
   late Uri _uri;
+  late Timer _timer;
   late String _path;
 
   final _recordTime = 5;
@@ -53,9 +53,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   void get _micPermission async {
     final serviceStatus = await Permission.microphone.status;
-    setState(() {
-      _isMicon = serviceStatus == ServiceStatus.enabled;
-    });
+    setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
   }
 
   void _tapFunction() {
@@ -85,7 +83,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer.cancel();
     _audioRecorder.dispose();
     super.dispose();
   }
@@ -361,7 +359,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void _startTimer() {
-    _timer?.cancel();
+    _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() => _recordDuration++);

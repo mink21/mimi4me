@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _startTimer() {
-    _timer?.cancel();
+    _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() => {if (_timerSec <= _startUpTime) _timerSec++});
