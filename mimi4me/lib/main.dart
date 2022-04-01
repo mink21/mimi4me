@@ -1,9 +1,15 @@
-import 'package:flutter/material.dart';
-import 'audio_recorder.dart';
 import 'dart:async';
+import 'audio_recorder.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(const MyApp());
 }
 
@@ -65,6 +71,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void get _startUpStatus {
+    if (_finishStartup) return;
     setState(() => _finishStartup = _timerSec <= _startUpTime);
   }
 
