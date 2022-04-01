@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  final _startUpTime = 10;
+  final _startUpTime = 5;
   int _timerSec = 0;
   bool _finishStartup = false;
   Timer? _timer;
@@ -52,9 +52,7 @@ class _HomePageState extends State<HomePage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Center(
-          child: Image.asset('assets/image/icon-large.PNG'),
-        ),
+        Center(child: Image.asset('assets/image/logo.PNG')),
         Container(
           margin: const EdgeInsets.only(top: 10),
           child: SpinKitWave(
