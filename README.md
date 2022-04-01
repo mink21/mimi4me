@@ -1,8 +1,26 @@
 # mimi4me
-Solution Challenge 2022
 
-# What is this?
+## Description
+This repositry is for developing an application [Solution Challenge 2022](https://developers.google.com/community/gdsc-solution-challenge). The challenge aims to solve for one or more of the United Nations 17 Sustainable Development Goals using Google technology.
 
+## What is mimi4me?
+
+Our app, "mimi4me" provides an additional warning in dangerous situations by alerting the user through vibration when loud sounds are detected. It also shows a rough decibel count of the noise and a list of possible causes of the noise.
+
+## Our Goals for the solution challenge
+
+One specific issue we wanted to deal with was the increase in pedestrian injuries and fatalities involving moving vehicles. While looking into this problem, we saw that a large portion of these accidents involved pedestrians wearing earphones or headphones. Due to the continuous development of noise-canceling features, it gets easier to miss important warning sounds such as train whistles and car honks. Our goal through this project was to decrease the number of accidents related to noise-canceling headphones.
+
+## Architecture and Technology
+
+![architecture image](static/architecture.jpg)
+
+- Fronted(UI) - **Flutter/Darts (Android)** 
+- Backend - Flask/Python(Keras/Tensorflow)
+- Infrastructure - Heroku Server
+
+---
+---
 
 # How to run
 
