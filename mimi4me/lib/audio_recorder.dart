@@ -1,19 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:record/record.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:vibration/vibration.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AudioRecorder extends StatefulWidget {
-  final void Function(String path) onStop;
-
-  const AudioRecorder({required this.onStop, Key? key}) : super(key: key);
+  const AudioRecorder({Key? key}) : super(key: key);
 
   @override
   _AudioRecorderState createState() => _AudioRecorderState();
@@ -24,56 +22,50 @@ class _AudioRecorderState extends State<AudioRecorder> {
   bool _isPosted = false;
   bool _isFetched = false;
   bool _isRecording = false;
-  bool _networkError = false;
   bool _isMicon = false;
 
   int _decibels = 0;
   int _recordDuration = 0;
 
   Timer? _timer;
+
   Color _color = Colors.blue;
 
   String _cause = "";
+
   late String _path;
   late Uri _uri;
+
   final _audioRecorder = Record();
   final _recordTime = 5;
 
   void get _apiUrl async {
     await dotenv.load(fileName: ".env");
     final url = dotenv.env['apiUrl']!;
-    setState(() {
-      _uri = Uri.parse(url);
-    });
+    setState(() => _uri = Uri.parse(url));
   }
 
   void get _localPath async {
     final directory = await getExternalCacheDirectories();
-    setState(() {
-      _path = directory![0].path + "/audio.mp4";
-    });
+    setState(() => _path = directory![0].path + "/audio.mp4");
   }
 
-  void _checkPermission() async {
+  void get _micPermission async {
     final serviceStatus = await Permission.microphone.status;
-    setState(() {
-      _isMicon = serviceStatus == ServiceStatus.enabled;
-    });
+    if (serviceStatus == ServiceStatus.enabled) {
+      await Permission.microphone.request();
+    } else {
+      setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
+    }
   }
 
   void _tapFunction() {
     if (_isRecording) {
       _stop();
-      setState(() {
-        _isRecording = false;
-      });
+      setState(() => _isRecording = false);
     } else {
       _start();
-      if (_isMicon) {
-        setState(() {
-          _isRecording = true;
-        });
-      }
+      if (_isMicon) setState(() => _isRecording = true);
     }
   }
 
@@ -81,10 +73,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
   void initState() {
     _isSaved = false;
     _isRecording = false;
-    _localPath;
+
     _apiUrl;
-    _start();
-    _checkPermission();
+    _localPath;
+    _micPermission;
+
     super.initState();
   }
 
@@ -103,6 +96,16 @@ class _AudioRecorderState extends State<AudioRecorder> {
         _color.withOpacity(0.3),
         Colors.white,
       ],
+    );
+  }
+
+  BoxDecoration get _boxDecoration {
+    return BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(
+        width: 30.0,
+        color: _color,
+      ),
     );
   }
 
@@ -135,16 +138,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
     );
   }
 
-  BoxDecoration get _boxDecoration {
-    return BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(
-        width: 30.0,
-        color: _color,
-      ),
-    );
-  }
-
   Widget _buildDecibel(int noiseValue) {
     return Stack(
       children: [
@@ -168,9 +161,12 @@ class _AudioRecorderState extends State<AudioRecorder> {
                 ),
                 children: <TextSpan>[
                   TextSpan(
-                      text: noiseValue.toString(),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 60)),
+                    text: noiseValue.toString(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 60,
+                    ),
+                  ),
                   const TextSpan(text: 'db'),
                 ],
               ),
@@ -202,17 +198,9 @@ class _AudioRecorderState extends State<AudioRecorder> {
       color: _color.withOpacity(1.0),
       size: 50.0,
     );
-    if (cause == "") {
-      return _loadingCircle;
-    }
-    if (!_isRecording) {
-      _loadingCircle = Container();
-    }
-    const _style = TextStyle(
-      overflow: TextOverflow.ellipsis,
-      fontWeight: FontWeight.bold,
-      fontSize: 30,
-    );
+
+    if (cause == "") return _loadingCircle;
+    if (!_isRecording) _loadingCircle = Container();
 
     return Column(
       children: [
@@ -241,7 +229,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
                 child: Text(
                   '\n$cause',
                   key: ValueKey<String>(cause),
-                  style: _style,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
+                  ),
                 ),
               ),
             ],
@@ -279,8 +271,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _start() async {
-    _isMicon = await _audioRecorder.hasPermission();
-    if (_isMicon) {
+    if (_isMicon || await _audioRecorder.hasPermission()) {
       await _audioRecorder.start(
         path: _path,
         bitRate: 1280,
@@ -290,7 +281,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
         _isMicon = true;
         _isSaved = false;
         _isFetched = false;
-        _networkError = false;
         _recordDuration = 0;
       });
 
@@ -299,9 +289,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Future<void> _stop() async {
-    final path = await _audioRecorder.stop();
-    widget.onStop(path!);
-
+    await _audioRecorder.stop();
     setState(() {
       _isSaved = true;
       _recordDuration = 0;
@@ -317,26 +305,16 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Future<void> _changeColor() async {
     if (_decibels >= 90) {
-      setState(() {
-        _color = Colors.red;
-      });
+      setState(() => _color = Colors.red);
       await _vibrate();
     } else if (_decibels > 60) {
-      setState(() {
-        _color = Colors.orange;
-      });
+      setState(() => _color = Colors.orange);
     } else if (_decibels > 35) {
-      setState(() {
-        _color = Colors.yellow;
-      });
+      setState(() => _color = Colors.yellow);
     } else if (_decibels > 30) {
-      setState(() {
-        _color = Colors.green;
-      });
+      setState(() => _color = Colors.green);
     } else {
-      setState(() {
-        _color = Colors.blue;
-      });
+      setState(() => _color = Colors.blue);
     }
   }
 
@@ -349,10 +327,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
     ));
 
     final response = await request.send();
-    setState(() {
-      _isPosted = response.statusCode == 200;
-      _networkError = response.statusCode == 200;
-    });
+    setState(() => _isPosted = response.statusCode == 200);
   }
 
   Future<void> _fetchResult() async {

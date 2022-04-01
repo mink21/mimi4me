@@ -64,24 +64,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<bool> get _checkStartUp async {
-    setState(() {
-      _finishStartup = _timerSec <= _startUpTime;
-    });
-    return _finishStartup;
+  void get _startUpStatus {
+    setState(() => _finishStartup = _timerSec <= _startUpTime);
   }
 
   Widget _buildMain() {
-    return Scaffold(
-      body: AudioRecorder(
-        onStop: (path) {},
-      ),
+    return const Scaffold(
+      body: AudioRecorder(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    _checkStartUp;
+    _startUpStatus;
     return Container(
       color: Colors.white,
       child: Stack(
