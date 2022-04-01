@@ -11,33 +11,34 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AudioRecorder extends StatefulWidget {
-  const AudioRecorder({Key? key}) : super(key: key);
+  final void Function() onStop;
+
+  const AudioRecorder({required this.onStop, Key? key}) : super(key: key);
 
   @override
   _AudioRecorderState createState() => _AudioRecorderState();
 }
 
 class _AudioRecorderState extends State<AudioRecorder> {
+  bool _isMicon = false;
   bool _isSaved = false;
   bool _isPosted = false;
   bool _isFetched = false;
   bool _isRecording = false;
-  bool _isMicon = false;
 
   int _decibels = 0;
   int _recordDuration = 0;
-
-  Timer? _timer;
 
   Color _color = Colors.blue;
 
   String _cause = "";
 
-  late String _path;
   late Uri _uri;
+  late Timer _timer;
+  late String _path;
 
-  final _audioRecorder = Record();
   final _recordTime = 5;
+  final _audioRecorder = Record();
 
   void get _apiUrl async {
     await dotenv.load(fileName: ".env");
@@ -52,11 +53,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   void get _micPermission async {
     final serviceStatus = await Permission.microphone.status;
-    if (serviceStatus == ServiceStatus.enabled) {
-      await Permission.microphone.request();
-    } else {
-      setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
-    }
+    setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
   }
 
   void _tapFunction() {
@@ -65,25 +62,28 @@ class _AudioRecorderState extends State<AudioRecorder> {
       setState(() => _isRecording = false);
     } else {
       _start();
-      if (_isMicon) setState(() => _isRecording = true);
+      if (_isMicon) {
+        setState(() => _isRecording = true);
+      }
     }
   }
 
   @override
   void initState() {
+    _localPath;
+    _apiUrl;
+    _micPermission;
+
     _isSaved = false;
     _isRecording = false;
 
-    _apiUrl;
-    _localPath;
-    _micPermission;
-
+    _start();
     super.initState();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer.cancel();
     _audioRecorder.dispose();
     super.dispose();
   }
@@ -198,7 +198,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
       color: _color.withOpacity(1.0),
       size: 50.0,
     );
-
     if (cause == "") return _loadingCircle;
     if (!_isRecording) _loadingCircle = Container();
 
@@ -263,7 +262,11 @@ class _AudioRecorderState extends State<AudioRecorder> {
       child: Material(
         color: color,
         child: InkWell(
-          child: SizedBox(width: 56, height: 56, child: icon),
+          child: SizedBox(
+            width: 56,
+            height: 56,
+            child: icon,
+          ),
           onTap: _tapFunction,
         ),
       ),
@@ -290,6 +293,8 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Future<void> _stop() async {
     await _audioRecorder.stop();
+    widget.onStop();
+
     setState(() {
       _isSaved = true;
       _recordDuration = 0;
@@ -354,7 +359,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void _startTimer() {
-    _timer?.cancel();
+    _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() => _recordDuration++);

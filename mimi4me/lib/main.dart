@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'audio_recorder.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import 'audio_recorder.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
+    DeviceOrientation.portraitUp,
   ]);
   runApp(const MyApp());
 }
@@ -16,7 +17,7 @@ Future main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  static const String _title = 'Flutter Code Sample';
+  static const String _title = 'mimi4me';
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +37,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _timerSec = 0;
+  bool _finishStartup = false;
+
+  late Timer _timer;
+
+  final _startUpTime = 5;
+
   @override
   void initState() {
     _startTimer();
@@ -45,14 +53,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer.cancel();
     super.dispose();
   }
-
-  final _startUpTime = 5;
-  int _timerSec = 0;
-  bool _finishStartup = false;
-  Timer? _timer;
 
   Widget _buildStartup() {
     return Column(
@@ -76,8 +79,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMain() {
-    return const Scaffold(
-      body: AudioRecorder(),
+    return Scaffold(
+      body: AudioRecorder(
+        onStop: () {},
+      ),
     );
   }
 
@@ -104,7 +109,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _startTimer() {
-    _timer?.cancel();
+    _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() => {if (_timerSec <= _startUpTime) _timerSec++});
