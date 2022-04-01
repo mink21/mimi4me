@@ -1,16 +1,23 @@
-import 'package:flutter/material.dart';
-import 'audio_recorder.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
+import 'audio_recorder.dart';
+
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.portraitUp,
+  ]);
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  static const String _title = 'Flutter Code Sample';
+  static const String _title = 'mimi4me';
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +37,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _timerSec = 0;
+  bool _finishStartup = false;
+
+  late Timer _timer;
+
+  final _startUpTime = 5;
+
   @override
   void initState() {
     _startTimer();
@@ -42,11 +56,6 @@ class _HomePageState extends State<HomePage> {
     _timer?.cancel();
     super.dispose();
   }
-
-  final _startUpTime = 5;
-  int _timerSec = 0;
-  bool _finishStartup = false;
-  Timer? _timer;
 
   Widget _buildStartup() {
     return Column(
@@ -74,7 +83,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMain() {
     return Scaffold(
       body: AudioRecorder(
-        onStop: (path) {},
+        onStop: () {},
       ),
     );
   }
