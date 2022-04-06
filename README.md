@@ -91,3 +91,11 @@ apiUrl=https://murmuring-hamlet-18265.herokuapp.com/ -> deployed server
 flutter run
 ```
 5. Click the record button and wait for few seconds
+
+### Acknowledgements
+
+Reference for Machine Learning
+- Prabhavsingh. “UrbanSound8K - Classification.” Kaggle, Kaggle, 16 Mar. 2020, https://www.kaggle.com/code/prabhavsingh/urbansound8k-classification/notebook?fbclid=IwAR3RIRwc9GrBzJ8qboCbCMHVBflFf1_IgjABkxt3uiRnS5yyNHjxCAOovnk.
+
+Reference for Icon
+- Ear by Andreas Wikström from NounProject.com
