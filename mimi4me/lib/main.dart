@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   int _timerSec = 0;
   bool _finishStartup = false;
 
-  late Timer _timer;
+  Timer _timer = Timer.periodic(const Duration(seconds: 1),(Timer t) {});
 
   final _startUpTime = 5;
 
@@ -88,31 +88,25 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    _startUpStatus;
-    return Container(
-      color: Colors.white,
-      child: Stack(
-        children: [
-          AnimatedOpacity(
+    if (!_finishStartup) {
+      _startUpStatus;
+      return Container(
+        color: Colors.white,
+        child: AnimatedOpacity(
             opacity: _finishStartup ? 1.0 : 0.0,
             duration: const Duration(seconds: 1),
             child: _buildStartup(),
           ),
-          AnimatedOpacity(
-            opacity: _finishStartup ? 0.0 : 1.0,
-            duration: const Duration(seconds: 1),
-            child: _buildMain(),
-          ),
-        ],
-      ),
-    );
+      );
+    }
+    return _buildMain();
   }
 
   void _startTimer() {
     _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      setState(() => {if (_timerSec <= _startUpTime) _timerSec++});
+      setState(() => {if (_timerSec < _startUpTime) _timerSec++});
     });
   }
 }
