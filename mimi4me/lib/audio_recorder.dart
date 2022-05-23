@@ -32,13 +32,17 @@ class _AudioRecorderState extends State<AudioRecorder> {
   Color _color = Colors.blue;
 
   String _cause = "";
+  String _path = "";
 
-  late Uri _uri;
-  late Timer _timer;
-  late String _path;
+  Timer _timer = Timer.periodic(const Duration(seconds: 1),(Timer t) {});
+
 
   final _recordTime = 5;
   final _audioRecorder = Record();
+
+  late Uri _uri;
+
+  Widget _causeWidget = Container();
 
   void get _apiUrl async {
     await dotenv.load(fileName: ".env");
@@ -62,10 +66,59 @@ class _AudioRecorderState extends State<AudioRecorder> {
       setState(() => _isRecording = false);
     } else {
       _start();
-      if (_isMicon) {
-        setState(() => _isRecording = true);
-      }
+      if (_isMicon) setState(() => _isRecording = true);
     }
+  }
+
+  void updateCauseWidget(String cause) {
+    
+
+    setState(() => _causeWidget = Column(
+      children: [
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 60),
+          child: Stack(
+            children: [
+              const Text(
+                'Possible Cause',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 700),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(
+                    child: child,
+                    scale: animation,
+                    alignment: Alignment.centerLeft,
+                  );
+                },
+                child: Text(
+                  '\n$cause',
+                  key: ValueKey<String>(cause),
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 30),
+          child: (_isRecording)? SpinKitCircle(
+            color: _color.withOpacity(1.0),
+            size: 50.0,
+          ): Container(),
+        ),
+      ],
+    ));
   }
 
   @override
@@ -88,27 +141,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
     super.dispose();
   }
 
-  LinearGradient get _gradientColor {
-    return LinearGradient(
-      begin: const Alignment(0, 2),
-      end: const Alignment(0, -0.7),
-      colors: [
-        _color.withOpacity(0.3),
-        Colors.white,
-      ],
-    );
-  }
-
-  BoxDecoration get _boxDecoration {
-    return BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(
-        width: 30.0,
-        color: _color,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isRecording) _restart();
@@ -117,7 +149,14 @@ class _AudioRecorderState extends State<AudioRecorder> {
       curve: Curves.fastOutSlowIn,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        gradient: _gradientColor,
+        gradient: LinearGradient(
+          begin: const Alignment(0, 2),
+          end: const Alignment(0, -0.7),
+          colors: [
+            _color.withOpacity(0.3),
+            Colors.white,
+          ],
+        ),
       ),
       child: Column(
         children: [
@@ -148,7 +187,13 @@ class _AudioRecorderState extends State<AudioRecorder> {
           padding: const EdgeInsets.all(10.0),
           width: 270.0,
           height: 270.0,
-          decoration: _boxDecoration,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              width: 30.0,
+              color: _color,
+            ),
+          ),
           child: Align(
             alignment: Alignment.center,
             child: RichText(
@@ -192,58 +237,10 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Widget _buildCauses(String cause) {
-    if (!_isRecording) return Container();
 
-    Widget _loadingCircle = SpinKitCircle(
-      color: _color.withOpacity(1.0),
-      size: 50.0,
-    );
-    if (cause == "") return _loadingCircle;
-    if (!_isRecording) _loadingCircle = Container();
+    (cause != "") ? updateCauseWidget(cause) : updateCauseWidget("None");
 
-    return Column(
-      children: [
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.only(left: 60),
-          child: Stack(
-            children: [
-              const Text(
-                'Possible Cause',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 700),
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(
-                    child: child,
-                    scale: animation,
-                    alignment: Alignment.centerLeft,
-                  );
-                },
-                child: Text(
-                  '\n$cause',
-                  key: ValueKey<String>(cause),
-                  style: const TextStyle(
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 30),
-          child: _loadingCircle,
-        ),
-      ],
-    );
+    return _causeWidget;
   }
 
   Widget _buildRecord() {
