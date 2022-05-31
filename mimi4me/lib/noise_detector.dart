@@ -154,7 +154,20 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       }
       //_decibels = noiseReading.meanDecibel;
     });
-    _changeColor();
+    //_restart();
+    if (_recordDuration > _recordTime) {
+      setState(() {
+        _recordDuration = 0;
+        if (++index > 2) index = 0;
+        _cause = _causeList[index];
+        _decibels = _decibelList[index];
+      });
+      //stop();
+      _postResult();
+      _fetchResult();
+      widget.onStop(_cause, _decibels.toInt());
+      _changeColor();
+    }
     //print(noiseReading.toString());
     //print(totalVolumes.length);
     if (totalVolumes.length > 100000) totalVolumes.clear();
@@ -201,7 +214,6 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isRecording) _restart();
     return AnimatedContainer(
       duration: const Duration(seconds: 2),
       curve: Curves.fastOutSlowIn,
