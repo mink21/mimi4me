@@ -9,9 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 class AudioRecorder extends StatefulWidget {
-  final void Function() onStop;
+  final void Function(String, int) onStop;
 
   const AudioRecorder({required this.onStop, Key? key}) : super(key: key);
 
@@ -34,8 +35,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   String _cause = "";
   String _path = "";
 
-  Timer _timer = Timer.periodic(const Duration(seconds: 1),(Timer t) {});
-
+  Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
   final _recordTime = 5;
   final _audioRecorder = Record();
@@ -71,54 +71,54 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   void updateCauseWidget(String cause) {
-    
-
     setState(() => _causeWidget = Column(
-      children: [
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.only(left: 60),
-          child: Stack(
-            children: [
-              const Text(
-                'Possible Cause',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 700),
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(
-                    child: child,
-                    scale: animation,
-                    alignment: Alignment.centerLeft,
-                  );
-                },
-                child: Text(
-                  '\n$cause',
-                  key: ValueKey<String>(cause),
-                  style: const TextStyle(
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30,
+          children: [
+            Container(
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 60),
+              child: Stack(
+                children: [
+                  const Text(
+                    'Possible Cause',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
-                ),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 700),
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(
+                        child: child,
+                        scale: animation,
+                        alignment: Alignment.centerLeft,
+                      );
+                    },
+                    child: Text(
+                      '\n$cause',
+                      key: ValueKey<String>(cause),
+                      style: const TextStyle(
+                        overflow: TextOverflow.ellipsis,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 30),
-          child: (_isRecording)? SpinKitCircle(
-            color: _color.withOpacity(1.0),
-            size: 50.0,
-          ): Container(),
-        ),
-      ],
-    ));
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 30),
+              child: (_isRecording)
+                  ? SpinKitCircle(
+                      color: _color.withOpacity(1.0),
+                      size: 50.0,
+                    )
+                  : Container(),
+            ),
+          ],
+        ));
   }
 
   @override
@@ -237,7 +237,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   Widget _buildCauses(String cause) {
-
     (cause != "") ? updateCauseWidget(cause) : updateCauseWidget("None");
 
     return _causeWidget;
@@ -290,7 +289,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   Future<void> _stop() async {
     await _audioRecorder.stop();
-    widget.onStop();
+    widget.onStop(_cause, _decibels);
 
     setState(() {
       _isSaved = true;

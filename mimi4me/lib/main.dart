@@ -1,9 +1,19 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
+import 'loading.dart';
 import 'audio_recorder.dart';
+import 'bgprocess.dart';
+
+MyTaskHandler handler = MyTaskHandler();
+
+void startCallback() {
+  // The setTaskHandler function must be called to handle the task in the background.
+  FlutterForegroundTask.setTaskHandler(handler);
+}
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,92 +31,151 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: _title,
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      initialRoute: '/loading',
+      routes: {
+        '/': (context) => const MainPage(),
+        '/loading': (context) => const LoadingPage(),
+      },
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _MainPageState createState() => _MainPageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _timerSec = 0;
-  bool _finishStartup = false;
+class _MainPageState extends State<MainPage> {
+  bool _isBG = false;
+  String _cause = "Not Checked";
+  ReceivePort? _receivePort;
 
-  Timer _timer = Timer.periodic(const Duration(seconds: 1),(Timer t) {});
+  Future<void> _initForegroundTask() async {
+    await FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: 'mimi_notfication',
+        channelName: 'Mimi4me Notification',
+        channelDescription:
+            'This notification appears when the foreground service is running.',
+        channelImportance: NotificationChannelImportance.HIGH,
+        enableVibration: true,
+        playSound: true,
+        priority: NotificationPriority.HIGH,
+        iconData: const NotificationIconData(
+          resType: ResourceType.mipmap,
+          resPrefix: ResourcePrefix.ic,
+          name: 'launcher',
+          backgroundColor: Colors.blue,
+        ),
+        buttons: [
+          const NotificationButton(id: 'start', text: 'Start'),
+        ],
+      ),
+      foregroundTaskOptions: const ForegroundTaskOptions(
+        interval: 5000,
+        autoRunOnBoot: true,
+        allowWifiLock: true,
+      ),
+      printDevLog: true,
+    );
+  }
 
-  final _startUpTime = 5;
+  Future<bool> _startForegroundTask() async {
+    if (!await FlutterForegroundTask.canDrawOverlays) {
+      final isGranted =
+          await FlutterForegroundTask.openSystemAlertWindowSettings();
+      if (!isGranted) return false;
+    }
+
+    ReceivePort? receivePort;
+    if (await FlutterForegroundTask.isRunningService) {
+      receivePort = await FlutterForegroundTask.restartService();
+    } else {
+      receivePort = await FlutterForegroundTask.startService(
+        notificationTitle: 'Foreground Service is running',
+        notificationText: 'Tap to return to the app',
+        callback: startCallback,
+      );
+    }
+    return _registerReceivePort(receivePort);
+  }
+
+  Future<bool> _stopForegroundTask() async {
+    return await FlutterForegroundTask.stopService();
+  }
+
+  bool _registerReceivePort(ReceivePort? receivePort) {
+    _closeReceivePort();
+
+    if (receivePort != null) {
+      _receivePort = receivePort;
+      _receivePort?.listen((message) {
+        print("Received: $message");
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void _closeReceivePort() {
+    _receivePort?.close();
+    _receivePort = null;
+  }
+
+  T? _ambiguate<T>(T? value) => value;
 
   @override
   void initState() {
-    _startTimer();
-    _finishStartup = false;
     super.initState();
+    _initForegroundTask();
+    _ambiguate(WidgetsBinding.instance)?.addPostFrameCallback((_) async {
+      // You can get the previous ReceivePort without restarting the service.
+      if (await FlutterForegroundTask.isRunningService) {
+        final newReceivePort = await FlutterForegroundTask.receivePort;
+        _registerReceivePort(newReceivePort);
+      }
+    });
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _closeReceivePort();
     super.dispose();
   }
 
-  Widget _buildStartup() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(child: Image.asset('assets/image/logo.PNG')),
-        Container(
-          margin: const EdgeInsets.only(top: 10),
-          child: SpinKitWave(
-            color: Colors.lightBlue.shade400,
-            type: SpinKitWaveType.start,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void get _startUpStatus {
-    if (_finishStartup) return;
-    setState(() => _finishStartup = _timerSec <= _startUpTime);
-  }
-
-  Widget _buildMain() {
-    return Scaffold(
-      body: AudioRecorder(
-        onStop: () {},
-      ),
+  Future<void> updateCauseData(cause) async {
+    FlutterForegroundTask.updateService(
+      notificationTitle: 'Sound Check',
+      notificationText: 'Causes: $_cause',
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_finishStartup) {
-      _startUpStatus;
-      return Container(
-        color: Colors.white,
-        child: AnimatedOpacity(
-            opacity: _finishStartup ? 1.0 : 0.0,
-            duration: const Duration(seconds: 1),
-            child: _buildStartup(),
-          ),
-      );
-    }
-    return _buildMain();
-  }
-
-  void _startTimer() {
-    _timer.cancel();
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      setState(() => {if (_timerSec < _startUpTime) _timerSec++});
-    });
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() => _isBG = !_isBG);
+          _isBG ? _startForegroundTask() : _stopForegroundTask();
+        },
+        label: _isBG ? const Text("BG On") : const Text("BG Off"),
+        icon: _isBG ? const Icon(Icons.thumb_up) : const Icon(Icons.thumb_down),
+        backgroundColor: _isBG ? Colors.green : Colors.red,
+      ),
+      body: AudioRecorder(
+        onStop: (cause, decibels) {
+          setState(() => _cause = cause);
+          print("Recorded: $cause, Decibels: $decibels");
+          updateCauseData(cause);
+        },
+      ),
+    );
   }
 }
