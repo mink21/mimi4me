@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'audio_recorder.dart';
+import 'noise_detector.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +41,7 @@ class _HomePageState extends State<HomePage> {
   int _timerSec = 0;
   bool _finishStartup = false;
 
-  Timer _timer = Timer.periodic(const Duration(seconds: 1),(Timer t) {});
+  Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
   final _startUpTime = 5;
 
@@ -79,11 +80,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMain() {
-    return Scaffold(
-      body: AudioRecorder(
-        onStop: () {},
-      ),
-    );
+    return Scaffold(body: NoiseDetector());
   }
 
   @override
@@ -93,10 +90,10 @@ class _HomePageState extends State<HomePage> {
       return Container(
         color: Colors.white,
         child: AnimatedOpacity(
-            opacity: _finishStartup ? 1.0 : 0.0,
-            duration: const Duration(seconds: 1),
-            child: _buildStartup(),
-          ),
+          opacity: _finishStartup ? 1.0 : 0.0,
+          duration: const Duration(seconds: 1),
+          child: _buildStartup(),
+        ),
       );
     }
     return _buildMain();
