@@ -11,6 +11,10 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class NoiseDetector extends StatefulWidget {
+  final void Function(String cause, int decibel) onStop;
+
+  const NoiseDetector({required this.onStop, Key? key}) : super(key: key);
+
   @override
   _NoiseDetectorState createState() => _NoiseDetectorState();
 }
@@ -22,7 +26,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   bool _isFetched = false;
   bool _isRecording = false;
 
-  int _decibels = 0;
+  double _decibels = 0;
   int _recordDuration = 0;
 
   Color _color = Colors.blue;
@@ -30,9 +34,13 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   String _cause = "";
   String _path = "";
 
+  int index = 0;
+  List<double> _decibelList = [60, 80, 120];
+  List<String> _causeList = ["KIDS", "GUN", "SIREN"];
+
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
-  final _recordTime = 1;
+  final _recordTime = 4;
 
   late Uri _uri;
 
@@ -41,7 +49,6 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   StreamSubscription<NoiseReading>? _noiseSubscription;
   late NoiseMeter _noiseMeter;
   final List<double> totalVolumes = [];
-  int index = 0;
 
   void get _apiUrl async {
     await dotenv.load(fileName: ".env");
@@ -145,8 +152,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       if (!_isRecording) {
         _isRecording = true;
       }
-      _isSaved = true;
-      _decibels = noiseReading.meanDecibel.toInt();
+      //_decibels = noiseReading.meanDecibel;
     });
     _changeColor();
     //print(noiseReading.toString());
@@ -164,6 +170,10 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     try {
       _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
       _startTimer();
+      setState(() {
+        _isFetched = false;
+        _isSaved = false;
+      });
     } catch (err) {
       print(err);
     }
@@ -177,24 +187,17 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         totalVolumes.clear();
       }
       setState(() {
-        _isRecording = false;
+        _isSaved = true;
+        _recordDuration = 0;
+        if (++index > 2) index = 0;
+        _cause = _causeList[index];
+        _decibels = _decibelList[index];
       });
+      widget.onStop(_cause, _decibels.toInt());
     } catch (err) {
       print('stopRecorder error: $err');
     }
   }
-
-  List<Widget> getContent() => <Widget>[
-        Container(
-            margin: EdgeInsets.all(25),
-            child: Column(children: [
-              Container(
-                child: Text(_isRecording ? "Mic: ON" : "Mic: OFF",
-                    style: TextStyle(fontSize: 25, color: Colors.blue)),
-                margin: EdgeInsets.only(top: 20),
-              )
-            ])),
-      ];
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +235,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     );
   }
 
-  Widget _buildDecibel(int noiseValue) {
+  Widget _buildDecibel(double noiseValue) {
     return Stack(
       children: [
         AnimatedContainer(
@@ -366,6 +369,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     setState(() {
       /*_decibels = data["decibels"];
       _cause = _decibels > 0 ? data["cause"] : "None";*/
+      _recordDuration = 0;
       _isFetched = true;
     });
 
@@ -373,8 +377,10 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   }
 
   void _restart() async {
+    //print("HERE, $_isSaved,$_recordDuration, $_isFetched");
     if (!_isSaved && _recordDuration >= _recordTime) {
       stop();
+      print("STOP");
       await _postResult();
       await _fetchResult();
     } else if (_isSaved && _isFetched) {
