@@ -21,6 +21,8 @@ dependencies:
   flutter_spinkit: ^5.1.0
   permission_handler: ^8.0.0+2
   noise_meter: 3.0.0
+  flutter_foreground_task: ^3.7.3
+
 
 dev_dependencies:
   flutter_test:
