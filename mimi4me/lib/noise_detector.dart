@@ -12,15 +12,18 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'settings.dart';
+import 'notifications.dart';
 
 NoiseDetector noiseDetectorPageMain = NoiseDetector(
   onStop: (cause, decibel) {
-    if (settingPageMain.notifFlag &&
-        settingPageMain.selectedSounds.contains(cause)) {
+    if ((settingPageMain.notifFlag &&
+            settingPageMain.selectedSounds.contains(cause)) ||
+        true) {
       FlutterForegroundTask.updateService(
         notificationTitle: 'Sound Check',
         notificationText: 'Causes: $cause, SoundLevel: $decibel',
       );
+      notificationPageMain.addNotifications(cause, decibel, DateTime.now().toString());
     }
     print("APP-MAIN: $cause,$decibel");
   },

@@ -9,12 +9,14 @@ import 'main.dart';
 SettingsPage settingPageMain = SettingsPage();
 
 final box = GetStorage();
+/*
 String keyInterval = 'interval';
-String keySoundList = 'sounds';
 String keyCountry = 'country';
+*/
+String keySoundList = 'sounds';
 
 String keyBgSetting = 'background';
-String keyNotifSetting = 'background';
+String keyNotifSetting = 'notification';
 
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
@@ -136,6 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
         _registerReceivePort(newReceivePort);
       }
     });
+    if (widget._notifFlag) _startForegroundTask();
   }
 
   @override
