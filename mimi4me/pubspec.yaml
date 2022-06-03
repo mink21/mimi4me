@@ -20,6 +20,8 @@ dependencies:
   flutter_dotenv: ^5.0.2
   flutter_spinkit: ^5.1.0
   permission_handler: ^8.0.0+2
+  tflite:
+  mfcc:
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +37,8 @@ flutter:
   assets:
     - .env
     - assets/image/
+    - assets/labels.txt
+    - assets/saved_model.tflite
 
 flutter_icons:
 
