@@ -19,6 +19,7 @@ String keyNotifSetting = 'background';
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
 String keyDogBark = "Dog Bark";
+//TODO: Add other Sound key
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
@@ -29,6 +30,8 @@ class SettingsPage extends StatefulWidget {
   bool _acFlag = box.read(keyAcFlag) ?? false;
   bool _kidsFlag = box.read(keyKidsFlag) ?? false;
   bool _dogFlag = box.read(keyDogBark) ?? false;
+
+  //TODO: Add other Sound flag
 
   List<String> _selectedSounds =
       (box.read(keySoundList) ?? settingPageMain.totalNoise).cast<String>()
@@ -215,11 +218,18 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   //TODO: Implement Other Sounds
+  /* [] change according to other sound
+  void _update[SoundName]() {
+    setState(() => widget.[_soundFlag] = !widget.[_soundFlag]);
+    box.write([soundKey], widget.[_soundFlag]);
+  }
+  */
 
   void checkAllState() {
     Map<String, bool> _allState = {
       "AC": widget._acFlag,
       "Kids Playing": widget._kidsFlag
+      //TODO: Add other Sound flag
     };
 
     List<String> _currentState = [];
@@ -236,7 +246,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.all(5),
-        child: Column(
+        child: ListView(
           children: [
             Container(
               alignment: Alignment.topCenter,
@@ -316,38 +326,56 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             Container(
               margin: const EdgeInsets.only(top: 5),
+              height: 340,
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Wrap(
-                    alignment: WrapAlignment.start,
-                    spacing: 10.0,
-                    children: [
-                      card(
-                        "AC",
-                        widget._acFlag,
-                        Colors.lightBlue.shade100,
-                        Colors.lightBlue,
-                        _updateAcState,
-                      ),
-                      card(
-                          "KidsPlaying",
-                          widget._kidsFlag,
-                          Colors.lightBlue.shade100,
-                          Colors.lightBlue,
-                          _updateKidsPlayingState),
-                      card(
-                        "Dog Bark",
-                        widget._dogFlag,
-                        Colors.yellow.shade200,
-                        Colors.orange,
-                        _updateDogState,
-                      ),
-                      //TODO: Implement Other Sounds
-                    ],
-                  ),
-                ],
+              child: LimitedBox(
+                maxHeight: 300, //最大の高さを指定
+                child: ListView.builder(
+                  itemCount: 5,
+                  //TODO: Set to 1 , currently set as 5 to show scroll feature
+                  itemBuilder: (BuildContext context, int index) {
+                    return Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            alignment: WrapAlignment.start,
+                            spacing: 10.0,
+                            children: [
+                              card(
+                                "AC",
+                                widget._acFlag,
+                                Colors.lightBlue.shade100,
+                                Colors.lightBlue,
+                                _updateAcState,
+                              ),
+                              card(
+                                  "KidsPlaying",
+                                  widget._kidsFlag,
+                                  Colors.lightBlue.shade100,
+                                  Colors.lightBlue,
+                                  _updateKidsPlayingState),
+                              card(
+                                "Dog Bark",
+                                widget._dogFlag,
+                                Colors.yellow.shade200,
+                                Colors.orange,
+                                _updateDogState,
+                              )
+                              //TODO: Implement Other Sounds
+                              /*
+                              card(
+                                [Sound Name],
+                                widget.[Sound Flag],
+                                [Sound light Color],
+                                [Sound bold Color],
+                                [Sound flag update Function],
+                              )
+                              */
+                            ],
+                          ),
+                        ]);
+                  },
+                ),
               ),
             ),
           ],
