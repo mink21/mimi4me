@@ -22,6 +22,7 @@ class MyTaskHandler extends TaskHandler {
   void onButtonPressed(String id) {
     // Called when the notification button on the Android platform is pressed.
     print(id);
+    _sendPort?.send(id);
   }
 
   @override

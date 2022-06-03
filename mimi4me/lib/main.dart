@@ -73,7 +73,7 @@ class _MainPageState extends State<MainPage> {
           backgroundColor: Colors.blue,
         ),
         buttons: [
-          const NotificationButton(id: 'start', text: 'Start'),
+          const NotificationButton(id: 'stop', text: 'Stop'),
         ],
       ),
       foregroundTaskOptions: const ForegroundTaskOptions(
