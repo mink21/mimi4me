@@ -9,8 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tflite/tflite.dart';
-import 'package:mfcc/mfcc.dart';
 
 class AudioRecorder extends StatefulWidget {
   final void Function() onStop;
@@ -35,14 +33,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
 
   String _cause = "";
   String _path = "";
-
-  var sampleRate = 22050;
-  var windowLength = 2048;
-  var windowStride = 512;
-  var numFilter = 20;
-  var numCoefs = 13;
-  List<double> mySignal = [];
-  var res;
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1),(Timer t) {});
 
@@ -132,7 +122,7 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 
   @override
-  void initState() async{
+  void initState() {
     _localPath;
     _apiUrl;
     _micPermission;
@@ -140,24 +130,15 @@ class _AudioRecorderState extends State<AudioRecorder> {
     _isSaved = false;
     _isRecording = false;
 
-    res = await Tflite.loadModel(
-        model: "assets/saved_model.tflite",
-        labels: "assets/labels.txt",
-        numThreads: 1, // defaults to 1
-        isAsset: true, // defaults to true, set to false to load resources outside assets
-        useGpuDelegate: false // defaults to false, set to true to use GPU delegate
-    );
-
     _start();
     super.initState();
   }
 
   @override
-  void dispose() async{
+  void dispose() {
     _timer.cancel();
     _audioRecorder.dispose();
     super.dispose();
-    await Tflite.close();
   }
 
   @override
@@ -294,7 +275,6 @@ class _AudioRecorderState extends State<AudioRecorder> {
       await _audioRecorder.start(
         path: _path,
         bitRate: 1280,
-        samplingRate: 22050
       );
 
       setState(() {
