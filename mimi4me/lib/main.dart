@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'loading.dart';
+import 'settings.dart' as s;
 import 'noise_detector.dart';
 import 'bgprocess.dart';
+import 'package:get_storage/get_storage.dart';
 
 MyTaskHandler handler = MyTaskHandler();
 
@@ -16,6 +18,7 @@ void startCallback() {
 }
 
 Future main() async {
+  await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,
@@ -38,6 +41,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const MainPage(),
         '/loading': (context) => const LoadingPage(),
+        '/setting': (context) => s.settings,
       },
     );
   }
@@ -150,11 +154,13 @@ class _MainPageState extends State<MainPage> {
     super.dispose();
   }
 
-  Future<void> updateCauseData(cause) async {
-    FlutterForegroundTask.updateService(
-      notificationTitle: 'Sound Check',
-      notificationText: 'Causes: $cause',
-    );
+  Future<void> updateCauseData(cause, decibel) async {
+    if (s.settings.soundList.contains(cause)) {
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Sound Check',
+        notificationText: 'Causes: $cause, SoundLevel: $decibel',
+      );
+    }
   }
 
   @override
@@ -169,10 +175,12 @@ class _MainPageState extends State<MainPage> {
         icon: _isBG ? const Icon(Icons.thumb_up) : const Icon(Icons.thumb_down),
         backgroundColor: _isBG ? Colors.green : Colors.red,
       ),
-      body: NoiseDetector(onStop: (cause, decibel) {
-        updateCauseData(cause);
-        print("$cause,$decibel");
-      }),
+      body: NoiseDetector(
+        onStop: (cause, decibel) {
+          updateCauseData(cause, decibel);
+          print("$cause,$decibel");
+        },
+      ),
     );
   }
 }

@@ -92,6 +92,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.2"
+  fft:
+    dependency: transitive
+    description:
+      name: fft
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   file:
     dependency: transitive
     description:
@@ -149,6 +156,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  get:
+    dependency: transitive
+    description:
+      name: get
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.6.5"
+  get_storage:
+    dependency: "direct main"
+    description:
+      name: get_storage
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.3"
   http:
     dependency: "direct main"
     description:
@@ -205,6 +226,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  mfcc:
+    dependency: "direct main"
+    description:
+      name: mfcc
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0"
+  my_complex:
+    dependency: transitive
+    description:
+      name: my_complex
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   noise_meter:
     dependency: "direct main"
     description:
@@ -310,6 +345,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.4"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.5"
   record:
     dependency: "direct main"
     description:
@@ -392,6 +434,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  smart_select:
+    dependency: "direct main"
+    description:
+      name: smart_select
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.3.2"
   source_span:
     dependency: transitive
     description:
@@ -434,6 +483,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.8"
+  tuple:
+    dependency: transitive
+    description:
+      name: tuple
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.3"
   typed_data:
     dependency: transitive
     description:

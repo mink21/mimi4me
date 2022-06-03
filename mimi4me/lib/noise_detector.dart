@@ -10,6 +10,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'settings.dart' as s;
+
 class NoiseDetector extends StatefulWidget {
   final void Function(String cause, int decibel) onStop;
 
@@ -26,7 +28,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   bool _isFetched = false;
   bool _isRecording = false;
 
-  double _decibels = 0;
+  int _decibels = 0;
   int _recordDuration = 0;
 
   Color _color = Colors.blue;
@@ -39,8 +41,6 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   List<String> _causeList = ["KIDS", "GUN", "SIREN"];
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
-
-  final _recordTime = 4;
 
   late Uri _uri;
 
@@ -152,15 +152,16 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       if (!_isRecording) {
         _isRecording = true;
       }
-      //_decibels = noiseReading.meanDecibel;
+      _decibels = noiseReading.meanDecibel.round();
+      _changeColor();
     });
     //_restart();
-    if (_recordDuration > _recordTime) {
+    if (_recordDuration > s.settings.intervalValue) {
       setState(() {
         _recordDuration = 0;
         if (++index > 2) index = 0;
-        _cause = _causeList[index];
-        _decibels = _decibelList[index];
+        //_cause = _causeList[index];
+        //_decibels = _decibelList[index];
       });
       //stop();
       _postResult();
@@ -204,7 +205,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         _recordDuration = 0;
         if (++index > 2) index = 0;
         _cause = _causeList[index];
-        _decibels = _decibelList[index];
+        //_decibels = _decibelList[index];
       });
       widget.onStop(_cause, _decibels.toInt());
     } catch (err) {
@@ -214,40 +215,52 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(seconds: 2),
-      curve: Curves.fastOutSlowIn,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: const Alignment(0, 2),
-          end: const Alignment(0, -0.7),
-          colors: [
-            _color.withOpacity(0.3),
-            Colors.white,
-          ],
+    print('${s.settings.intervalValue},$_recordDuration');
+    return Scaffold(
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 15),
+        child: FloatingActionButton(
+          onPressed: () => Navigator.of(context).pushNamed('/setting'),
+          child: const Icon(Icons.thumb_down),
+          backgroundColor: Colors.green,
         ),
       ),
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 15),
-            child: _buildDecibel(_decibels),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
+      body: AnimatedContainer(
+        duration: const Duration(seconds: 2),
+        curve: Curves.fastOutSlowIn,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: const Alignment(0, 2),
+            end: const Alignment(0, -0.7),
+            colors: [
+              _color.withOpacity(0.3),
+              Colors.white,
+            ],
           ),
-          Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            child: _buildRecord(),
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: _buildCauses(_cause),
-          ),
-        ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              child: _buildDecibel(_decibels),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              child: _buildRecord(),
+            ),
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: _buildCauses(_cause),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildDecibel(double noiseValue) {
+  Widget _buildDecibel(int noiseValue) {
     return Stack(
       children: [
         AnimatedContainer(
@@ -390,7 +403,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   void _restart() async {
     //print("HERE, $_isSaved,$_recordDuration, $_isFetched");
-    if (!_isSaved && _recordDuration >= _recordTime) {
+    if (!_isSaved && _recordDuration >= s.settings.intervalValue) {
       stop();
       print("STOP");
       await _postResult();
@@ -404,7 +417,9 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      setState(() => _recordDuration++);
+      setState(() {
+        if (_isRecording) _recordDuration++;
+      });
     });
   }
 }
