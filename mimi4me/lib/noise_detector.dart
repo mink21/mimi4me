@@ -9,6 +9,25 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+
+import 'settings.dart';
+import 'notifications.dart';
+
+NoiseDetector noiseDetectorPageMain = NoiseDetector(
+  onStop: (cause, decibel) {
+    if ((settingPageMain.notifFlag &&
+            settingPageMain.selectedSounds.contains(cause)) ||
+        true) {
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Sound Check',
+        notificationText: 'Causes: $cause, SoundLevel: $decibel',
+      );
+      notificationPageMain.addNotifications(cause, decibel, DateTime.now().toString());
+    }
+    print("APP-MAIN: $cause,$decibel");
+  },
+);
 
 class NoiseDetector extends StatefulWidget {
   final void Function(String cause, int decibel) onStop;
@@ -19,14 +38,15 @@ class NoiseDetector extends StatefulWidget {
   _NoiseDetectorState createState() => _NoiseDetectorState();
 }
 
-class _NoiseDetectorState extends State<NoiseDetector> {
+class _NoiseDetectorState extends State<NoiseDetector>
+    with WidgetsBindingObserver {
   bool _isMicon = false;
   bool _isSaved = false;
   bool _isPosted = false;
   bool _isFetched = false;
   bool _isRecording = false;
 
-  double _decibels = 0;
+  int _decibels = 0;
   int _recordDuration = 0;
 
   Color _color = Colors.blue;
@@ -36,13 +56,13 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   int index = 0;
   List<double> _decibelList = [60, 80, 120];
-  List<String> _causeList = ["KIDS", "GUN", "SIREN"];
+  List<String> _causeList = ["1", "2", "3", "4"];
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
-  final _recordTime = 4;
-
   late Uri _uri;
+
+  int _intervals = 4;
 
   Widget _causeWidget = Container();
 
@@ -127,6 +147,15 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         ));
   }
 
+  AppLifecycleState _notification = AppLifecycleState.resumed;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _notification = state;
+    });
+  }
+
   @override
   void initState() {
     _localPath;
@@ -137,6 +166,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     _isRecording = false;
 
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     _noiseMeter = NoiseMeter(onError);
   }
 
@@ -144,6 +174,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   void dispose() {
     _timer.cancel();
     _noiseSubscription?.cancel();
+    WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
   }
 
@@ -152,17 +183,33 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       if (!_isRecording) {
         _isRecording = true;
       }
-      //_decibels = noiseReading.meanDecibel;
+      _decibels = noiseReading.meanDecibel.round();
+      _changeColor();
     });
     //_restart();
-    if (_recordDuration > _recordTime) {
+    if (_recordDuration >= _intervals) {
       setState(() {
         _recordDuration = 0;
-        if (++index > 2) index = 0;
-        _cause = _causeList[index];
-        _decibels = _decibelList[index];
+        if (index >= _causeList.length) index = 0;
+        _cause = _causeList[index++];
+        //_decibels = _decibelList[index];
       });
-      //stop();
+
+      print(_cause);
+      if (_notification != AppLifecycleState.resumed &&
+          !settingPageMain.bgFlag) {
+        stop();
+      }
+      print("CURRENT STATE: $_notification");
+
+      /*
+      print("CURRENT STATE: $_notification");
+      alertPageMain.updateCause(_cause);
+      stop();
+      if (_notification != AppLifecycleState.resumed) {
+        FlutterForegroundTask.launchApp('/');
+      }
+      Navigator.of(context).pushNamed('/alert');*/
       _postResult();
       _fetchResult();
       widget.onStop(_cause, _decibels.toInt());
@@ -200,11 +247,12 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         totalVolumes.clear();
       }
       setState(() {
+        _isRecording = false;
         _isSaved = true;
         _recordDuration = 0;
-        if (++index > 2) index = 0;
-        _cause = _causeList[index];
-        _decibels = _decibelList[index];
+        if (++index > _causeList.length) index = 0;
+        _cause = "Not Checked";
+        _decibels = 0;
       });
       widget.onStop(_cause, _decibels.toInt());
     } catch (err) {
@@ -214,40 +262,48 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(seconds: 2),
-      curve: Curves.fastOutSlowIn,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: const Alignment(0, 2),
-          end: const Alignment(0, -0.7),
-          colors: [
-            _color.withOpacity(0.3),
-            Colors.white,
+    print(
+        "CURRENT STATE: $_notification, SOUND: ${settingPageMain.selectedSounds}");
+    return SafeArea(
+      child: AnimatedContainer(
+        duration: const Duration(seconds: 2),
+        curve: Curves.fastOutSlowIn,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: const Alignment(0, 2),
+            end: const Alignment(0, -0.7),
+            colors: [
+              _color.withOpacity(0.3),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 15),
+              child: const Text("HOME"),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              child: _buildDecibel(_decibels),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              child: _buildRecord(),
+            ),
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: _buildCauses(_cause),
+            ),
           ],
         ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 15),
-            child: _buildDecibel(_decibels),
-          ),
-          Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            child: _buildRecord(),
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: _buildCauses(_cause),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildDecibel(double noiseValue) {
+  Widget _buildDecibel(int noiseValue) {
     return Stack(
       children: [
         AnimatedContainer(
@@ -388,23 +444,13 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     _changeColor();
   }
 
-  void _restart() async {
-    //print("HERE, $_isSaved,$_recordDuration, $_isFetched");
-    if (!_isSaved && _recordDuration >= _recordTime) {
-      stop();
-      print("STOP");
-      await _postResult();
-      await _fetchResult();
-    } else if (_isSaved && _isFetched) {
-      start();
-    }
-  }
-
   void _startTimer() {
     _timer.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      setState(() => _recordDuration++);
+      setState(() {
+        if (_isRecording) _recordDuration++;
+      });
     });
   }
 }
