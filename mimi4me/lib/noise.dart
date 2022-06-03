@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 /// A [NoiseMeter] object is reponsible for connecting to to
 /// the native environment.
 class NoiseMeter {
-  AudioStreamer _streamer = AudioStreamer();
-  Function _onError;
+  final AudioStreamer _streamer = AudioStreamer();
+  final Function _onError;
   Stream<NoiseReading>? _stream;
 
   NoiseMeter(this._onError);

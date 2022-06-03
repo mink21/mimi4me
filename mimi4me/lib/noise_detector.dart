@@ -9,8 +9,22 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
-import 'settings.dart' as s;
+import 'settings.dart';
+
+NoiseDetector noiseDetectorPageMain = NoiseDetector(
+  onStop: (cause, decibel) {
+    if (settingPageMain.notifFlag &&
+        settingPageMain.selectedSounds.contains(cause)) {
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Sound Check',
+        notificationText: 'Causes: $cause, SoundLevel: $decibel',
+      );
+    }
+    print("APP-MAIN: $cause,$decibel");
+  },
+);
 
 class NoiseDetector extends StatefulWidget {
   final void Function(String cause, int decibel) onStop;
@@ -21,7 +35,8 @@ class NoiseDetector extends StatefulWidget {
   _NoiseDetectorState createState() => _NoiseDetectorState();
 }
 
-class _NoiseDetectorState extends State<NoiseDetector> {
+class _NoiseDetectorState extends State<NoiseDetector>
+    with WidgetsBindingObserver {
   bool _isMicon = false;
   bool _isSaved = false;
   bool _isPosted = false;
@@ -38,11 +53,13 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   int index = 0;
   List<double> _decibelList = [60, 80, 120];
-  List<String> _causeList = ["KIDS", "GUN", "SIREN"];
+  List<String> _causeList = ["1", "2", "3", "4"];
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
   late Uri _uri;
+
+  int _intervals = 4;
 
   Widget _causeWidget = Container();
 
@@ -127,6 +144,15 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         ));
   }
 
+  AppLifecycleState _notification = AppLifecycleState.resumed;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _notification = state;
+    });
+  }
+
   @override
   void initState() {
     _localPath;
@@ -137,6 +163,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     _isRecording = false;
 
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     _noiseMeter = NoiseMeter(onError);
   }
 
@@ -144,6 +171,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   void dispose() {
     _timer.cancel();
     _noiseSubscription?.cancel();
+    WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
   }
 
@@ -156,14 +184,29 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       _changeColor();
     });
     //_restart();
-    if (_recordDuration > s.settings.intervalValue) {
+    if (_recordDuration >= _intervals) {
       setState(() {
         _recordDuration = 0;
-        if (++index > 2) index = 0;
-        //_cause = _causeList[index];
+        if (index >= _causeList.length) index = 0;
+        _cause = _causeList[index++];
         //_decibels = _decibelList[index];
       });
-      //stop();
+
+      print(_cause);
+      if (_notification != AppLifecycleState.resumed &&
+          !settingPageMain.bgFlag) {
+        stop();
+      }
+      print("CURRENT STATE: $_notification");
+
+      /*
+      print("CURRENT STATE: $_notification");
+      alertPageMain.updateCause(_cause);
+      stop();
+      if (_notification != AppLifecycleState.resumed) {
+        FlutterForegroundTask.launchApp('/');
+      }
+      Navigator.of(context).pushNamed('/alert');*/
       _postResult();
       _fetchResult();
       widget.onStop(_cause, _decibels.toInt());
@@ -201,11 +244,12 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         totalVolumes.clear();
       }
       setState(() {
+        _isRecording = false;
         _isSaved = true;
         _recordDuration = 0;
-        if (++index > 2) index = 0;
-        _cause = _causeList[index];
-        //_decibels = _decibelList[index];
+        if (++index > _causeList.length) index = 0;
+        _cause = "Not Checked";
+        _decibels = 0;
       });
       widget.onStop(_cause, _decibels.toInt());
     } catch (err) {
@@ -215,18 +259,10 @@ class _NoiseDetectorState extends State<NoiseDetector> {
 
   @override
   Widget build(BuildContext context) {
-    print('${s.settings.intervalValue},$_recordDuration');
-    return Scaffold(
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: 15),
-        child: FloatingActionButton(
-          onPressed: () => Navigator.of(context).pushNamed('/setting'),
-          child: const Icon(Icons.thumb_down),
-          backgroundColor: Colors.green,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
-      body: AnimatedContainer(
+    print(
+        "CURRENT STATE: $_notification, SOUND: ${settingPageMain.selectedSounds}");
+    return SafeArea(
+      child: AnimatedContainer(
         duration: const Duration(seconds: 2),
         curve: Curves.fastOutSlowIn,
         alignment: Alignment.center,
@@ -242,6 +278,10 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         ),
         child: Column(
           children: [
+            Container(
+              margin: const EdgeInsets.only(top: 15),
+              child: const Text("HOME"),
+            ),
             Container(
               margin: const EdgeInsets.only(bottom: 15),
               child: _buildDecibel(_decibels),
@@ -399,18 +439,6 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     });
 
     _changeColor();
-  }
-
-  void _restart() async {
-    //print("HERE, $_isSaved,$_recordDuration, $_isFetched");
-    if (!_isSaved && _recordDuration >= s.settings.intervalValue) {
-      stop();
-      print("STOP");
-      await _postResult();
-      await _fetchResult();
-    } else if (_isSaved && _isFetched) {
-      start();
-    }
   }
 
   void _startTimer() {
