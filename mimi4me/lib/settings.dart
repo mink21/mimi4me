@@ -18,6 +18,7 @@ String keyNotifSetting = 'background';
 
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
+String keyDogBark = "Dog Bark";
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
@@ -27,6 +28,7 @@ class SettingsPage extends StatefulWidget {
 
   bool _acFlag = box.read(keyAcFlag) ?? false;
   bool _kidsFlag = box.read(keyKidsFlag) ?? false;
+  bool _dogFlag = box.read(keyDogBark) ?? false;
 
   List<String> _selectedSounds =
       (box.read(keySoundList) ?? settingPageMain.totalNoise).cast<String>()
@@ -139,53 +141,61 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
-  Widget card(String name, bool state, Function update) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(5),
-          decoration: BoxDecoration(
-            color: Colors.lightBlue.shade100,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(10.0),
-              bottomLeft: Radius.circular(10.0),
+  Widget card(String name, bool state, Color lightColor, Color boldColor,
+      Function update) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: lightColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10.0),
+                bottomLeft: Radius.circular(10.0),
+              ),
+            ),
+            child: Icon(
+              Icons.hourglass_empty,
+              color: boldColor,
             ),
           ),
-          child: const Icon(
-            Icons.hourglass_empty,
-            color: Colors.lightBlue,
-          ),
-        ),
-        InkWell(
-          onTap: () => update(),
-          child: Row(
-            children: [
-              Container(
-                width: 90,
-                padding: const EdgeInsets.only(
-                  top: 15,
-                  bottom: 15,
-                  left: 8,
+          InkWell(
+            onTap: () => update(),
+            child: Row(
+              children: [
+                Container(
+                  width: 90,
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    left: 8,
+                  ),
+                  child: Text(name),
                 ),
-                child: Text(name),
-              ),
-              Container(
-                padding: const EdgeInsets.only(right: 5),
-                child: (state)
-                    ? const Icon(
-                        Icons.star_outlined,
-                        color: Colors.blue,
-                      )
-                    : const Icon(
-                        Icons.star_outline,
-                        color: Colors.grey,
-                      ),
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.only(right: 5),
+                  child: (state)
+                      ? const Icon(
+                          Icons.star_outlined,
+                          color: Colors.blue,
+                        )
+                      : const Icon(
+                          Icons.star_outline,
+                          color: Colors.grey,
+                        ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -197,6 +207,11 @@ class _SettingsPageState extends State<SettingsPage> {
   void _updateKidsPlayingState() {
     setState(() => widget._kidsFlag = !widget._kidsFlag);
     box.write(keyKidsFlag, widget._kidsFlag);
+  }
+
+  void _updateDogState() {
+    setState(() => widget._dogFlag = !widget._dogFlag);
+    box.write(keyDogBark, widget._dogFlag);
   }
 
   //TODO: Implement Other Sounds
@@ -309,9 +324,26 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: WrapAlignment.start,
                     spacing: 10.0,
                     children: [
-                      card("AC", widget._acFlag, _updateAcState),
-                      card("KidsPlaying", widget._kidsFlag,
+                      card(
+                        "AC",
+                        widget._acFlag,
+                        Colors.lightBlue.shade100,
+                        Colors.lightBlue,
+                        _updateAcState,
+                      ),
+                      card(
+                          "KidsPlaying",
+                          widget._kidsFlag,
+                          Colors.lightBlue.shade100,
+                          Colors.lightBlue,
                           _updateKidsPlayingState),
+                      card(
+                        "Dog Bark",
+                        widget._dogFlag,
+                        Colors.yellow.shade200,
+                        Colors.orange,
+                        _updateDogState,
+                      ),
                       //TODO: Implement Other Sounds
                     ],
                   ),
