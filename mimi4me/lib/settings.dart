@@ -20,18 +20,23 @@ String keyNotifSetting = 'notification';
 
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
-String keyDogBark = "Dog Bark";
+String keyDogBarkFlag = "Dog Bark";
 //TODO: Add other Sound key
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
-  final List<String> _totalNoise = ["1", "2", "3", "4"];
+  final List<String> _totalNoise = [
+    keyAcFlag,
+    keyKidsFlag,
+    keyDogBarkFlag,
+    //TODO: Add other Sound flag
+  ];
   bool _bgFlag = box.read(keyBgSetting) ?? false;
   bool _notifFlag = box.read(keyNotifSetting) ?? false;
 
   bool _acFlag = box.read(keyAcFlag) ?? false;
   bool _kidsFlag = box.read(keyKidsFlag) ?? false;
-  bool _dogFlag = box.read(keyDogBark) ?? false;
+  bool _dogFlag = box.read(keyDogBarkFlag) ?? false;
 
   //TODO: Add other Sound flag
 
@@ -218,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _updateDogState() {
     setState(() => widget._dogFlag = !widget._dogFlag);
-    box.write(keyDogBark, widget._dogFlag);
+    box.write(keyDogBarkFlag, widget._dogFlag);
   }
 
   //TODO: Implement Other Sounds

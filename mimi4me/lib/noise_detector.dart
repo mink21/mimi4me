@@ -57,7 +57,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   int index = 0;
   List<double> _decibelList = [60, 80, 120];
-  List<String> _causeList = ["1", "2", "3", "4"];
+  List<String> _causeList = settingPageMain.totalNoise;
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
