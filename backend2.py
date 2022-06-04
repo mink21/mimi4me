@@ -28,21 +28,37 @@ import librosa
 import librosa.display
 import glob
 
-NUM_SAMPLES = 8732
+NUM_SAMPLES = 100
+
+def meanT(arr):
+    useful = arr.numpy()
+    return tf.convert_to_tensor(np.mean(useful.T, axis = 0))
+def mel(timeSeries):
+    useful = timeSeries.numpy()
+    return tf.convert_to_tensor(librosa.feature.melspectrogram(y=useful, sr = 22050))
+def shape(preshape):
+    useful = preshape.numpy()
+    useful = useful.reshape((len(preshape), 16, 8, 1))
+    return tf.convert_to_tensor(useful)
+
+def fn(timeSeries):
+    #return tf.convert_to_tensor(shape(meanT(mel(timeSeries))))
+    useful = timeSeries.numpy()
+    #print(useful[45000])
+    res = tf.convert_to_tensor(np.mean(librosa.feature.melspectrogram(y=useful, sr = 22050).T,axis=0))
+    return res
+def fn_func(timeSeries):
+    return tf.py_function(fn, [timeSeries], tf.float32)
+
 #8732
 class Spectrograminator(keras.layers.Layer):
     def __init__(self, output_dim):
         self.output_dim = output_dim
         super(Spectrograminator,self).__init__()
     def call(self, input_shape, sample_rate=22050):
-        input = input_shape.numpy()
-        res = np.empty((len(input),128))
-        for i in range(len(input)):
-            #print(signal[45000])
-            mels = np.mean(librosa.feature.melspectrogram(y=input[i], sr = sample_rate).T, axis=0)
-            res[i] = mels
-        #print(res.shape)
-        res = res.reshape((len(input), 16, 8, 1))
+        #print(input_shape.shape)
+        res = tf.map_fn(fn = fn_func, elems = input_shape, fn_output_signature=tf.TensorSpec([128,]))
+        res = tf.reshape(res, (tf.shape(res)[0],16,8,1))
         return res
     def build(self, input_shape):
         self.add_weight(name = 'idk', 
@@ -102,10 +118,10 @@ model.add(Dense(1024, activation = "tanh"))
 model.add(Dense(10, activation = "softmax"))
 
 model.compile(run_eagerly = True, optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
-model.fit(X_train, Y_train, epochs = 90, batch_size = 50, validation_data = (X_test, Y_test))
+model.fit(X_train, Y_train, epochs = 5, batch_size = 50, validation_data = (X_test, Y_test))
 model.summary()
 
-model.save("C:\\Users\\khale\\Desktop\\timeSeriesModelPad")
+tf.keras.models.save_model(model,"C:\\Users\\khale\\Desktop\\timeSeriesModelPad")
 
 predictions = model.predict(X_test)
 score = model.evaluate(X_test, Y_test)

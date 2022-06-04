@@ -4,15 +4,12 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'noise.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:vibration/vibration.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tflite/tflite.dart';
-import 'package:mfcc/mfcc.dart';
+import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
 
 class NoiseDetector extends StatefulWidget {
   final void Function(String cause, int decibel) onStop;
@@ -29,6 +26,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   bool _isPosted = false;
   bool _isFetched = false;
   bool _isRecording = false;
+  bool _hasModel = false;
 
   double _decibels = 0;
   int _recordDuration = 0;
@@ -39,7 +37,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   var numFilter = 20;
   var numCoefs = 13;
   List<double> mySignal = [];
-  var m;
+  late tfl.Interpreter model;
 
   Color _color = Colors.blue;
 
@@ -140,7 +138,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   }
 
   @override
-  void initState() async{
+  void initState(){
     _localPath;
     _apiUrl;
     _micPermission;
@@ -148,13 +146,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     _isSaved = false;
     _isRecording = false;
 
-    m = await Tflite.loadModel(
-        model: "assets/saved_model.tflite",
-        labels: "assets/labels.txt",
-        numThreads: 1, // defaults to 1
-        isAsset: true, // defaults to true, set to false to load resources outside assets
-        useGpuDelegate: false // defaults to false, set to true to use GPU delegate
-    );
+
 
     super.initState();
     _noiseMeter = NoiseMeter(onError);
@@ -190,7 +182,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     }
     //print(noiseReading.toString());
     //print(totalVolumes.length);
-    if (totalVolumes.length > 100000) totalVolumes.clear();
+    if (totalVolumes.length > 90000) totalVolumes.clear();
     //totalVolumes.addAll(noiseReading.volumes);
   }
 
@@ -395,11 +387,16 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   }
 
   Future<void> _fetchResult() async {
-    var res = Tflite.runModelOnBinary(
-        binary: Uint8List.fromList(totalVolumes),
-
-    )
-
+    if(!_hasModel){
+      model = await tfl.Interpreter.fromAsset('saved_model.tflite');
+    }
+    if(totalVolumes.length >= 89009){
+      var output = List.filled(1*10, 0).reshape([1,10]);
+      print("heysadfuiohaeroiuhvfaofgbue");
+      model.run(totalVolumes.sublist(0,89009), output);
+      print("AHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGB");
+      print(output);
+    }
     _changeColor();
   }
 
