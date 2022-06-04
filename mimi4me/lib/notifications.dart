@@ -70,9 +70,9 @@ class _NotificationPageState extends State<NotificationPage> {
         _notificationsItem.length,
         (int index) => card(
           Icons.upcoming,
-          _notificationsItem[index],
-          _notificationsLevel[index],
-          _notificationsDate[index],
+          _notificationsItem[_notificationsItem.length - index - 1],
+          _notificationsLevel[_notificationsItem.length - index - 1],
+          _notificationsDate[_notificationsItem.length - index - 1],
         ),
       ),
     );
