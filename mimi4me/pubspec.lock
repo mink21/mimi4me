@@ -92,13 +92,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.2"
-  fft:
-    dependency: transitive
-    description:
-      name: fft
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   file:
     dependency: transitive
     description:
@@ -226,20 +219,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
-  mfcc:
-    dependency: "direct main"
-    description:
-      name: mfcc
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
-  my_complex:
-    dependency: transitive
-    description:
-      name: my_complex
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
   noise_meter:
     dependency: "direct main"
     description:
@@ -351,7 +330,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.5"
+    version: "3.1.0"
   record:
     dependency: "direct main"
     description:
@@ -483,13 +462,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.8"
-  tuple:
-    dependency: transitive
+  tflite_flutter:
+    dependency: "direct main"
     description:
-      name: tuple
+      name: tflite_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "0.9.0"
   typed_data:
     dependency: transitive
     description:

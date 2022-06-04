@@ -22,10 +22,10 @@ dependencies:
   permission_handler: ^8.0.0+2
   noise_meter: 3.0.0
   flutter_foreground_task: ^3.7.3
-  mfcc: ^1.1.0
   smart_select: ^4.3.2
   get_storage:
   url_launcher:
+  tflite_flutter:
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +41,7 @@ flutter:
   assets:
     - .env
     - assets/image/
+    - assets/saved_model.tflite
 
 flutter_icons:
 

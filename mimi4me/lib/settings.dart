@@ -40,9 +40,14 @@ class SettingsPage extends StatefulWidget {
 
   //TODO: Add other Sound flag
 
-  List<String> _selectedSounds =
-      (box.read(keySoundList) ?? settingPageMain.totalNoise).cast<String>()
-          as List<String>;
+  List<String> _selectedSounds = (box.read(keySoundList) ??
+          [
+            keyAcFlag,
+            keyKidsFlag,
+            keyDogBarkFlag,
+            //TODO: Add other Sound flag
+          ])
+      .cast<String>() as List<String>;
 
   bool get bgFlag => _bgFlag;
   bool get notifFlag => _notifFlag;
