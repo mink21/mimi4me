@@ -175,14 +175,17 @@ class _NoiseDetectorState extends State<NoiseDetector> {
         _decibels = _decibelList[index];
       });
       //stop();
-      _postResult();
+      //_postResult();
       _fetchResult();
       widget.onStop(_cause, _decibels.toInt());
       _changeColor();
     }
     //print(noiseReading.toString());
     //print(totalVolumes.length);
-    if (totalVolumes.length > 90000) totalVolumes.clear();
+    // if (totalVolumes.length > 100000){
+    //   print("HEYYYYYYYYYYYYYYYYYY\n\n\n");
+    //   totalVolumes.clear();
+    // }
     //totalVolumes.addAll(noiseReading.volumes);
   }
 
@@ -209,7 +212,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       if (_noiseSubscription != null) {
         _noiseSubscription!.cancel();
         _noiseSubscription = null;
-        totalVolumes.clear();
+        //totalVolumes.clear();
       }
       setState(() {
         _isSaved = true;
@@ -373,18 +376,18 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     }
   }
 
-  Future<void> _postResult() async {
-    /*var request = http.MultipartRequest("POST", _uri);
-    request.files.add(await http.MultipartFile.fromPath(
-      'audio',
-      _path,
-      contentType: MediaType('audio', 'mp4'),
-    ));
-
-    final response = await request.send();
-    setState(() => _isPosted = response.statusCode == 200);*/
-    setState(() => _isPosted = true);
-  }
+  // Future<void> _postResult() async {
+  //   /*var request = http.MultipartRequest("POST", _uri);
+  //   request.files.add(await http.MultipartFile.fromPath(
+  //     'audio',
+  //     _path,
+  //     contentType: MediaType('audio', 'mp4'),
+  //   ));
+  //
+  //   final response = await request.send();
+  //   setState(() => _isPosted = response.statusCode == 200);*/
+  //   setState(() => _isPosted = true);
+  // }
 
   Future<void> _fetchResult() async {
     if(!_hasModel){
@@ -392,25 +395,31 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     }
     if(totalVolumes.length >= 89009){
       var output = List.filled(1*10, 0).reshape([1,10]);
-      print("heysadfuiohaeroiuhvfaofgbue");
+      //print("heysadfuiohaeroiuhvfaofgbue\n\n\n");
       model.run(totalVolumes.sublist(0,89009), output);
-      print("AHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGB");
+      //print("AHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGB");
       print(output);
+      totalVolumes.clear();
+    }
+    else{
+      print(totalVolumes.length);
+      //print("asdfasdfasdf");
     }
     _changeColor();
   }
-
-  void _restart() async {
-    //print("HERE, $_isSaved,$_recordDuration, $_isFetched");
-    if (!_isSaved && _recordDuration >= _recordTime) {
-      stop();
-      print("STOP");
-      await _postResult();
-      await _fetchResult();
-    } else if (_isSaved && _isFetched) {
-      start();
-    }
-  }
+  //
+  // void _restart() async {
+  //   //print("HERE, $_isSaved,$_recordDuration, $_isFetched");
+  //   if (!_isSaved && _recordDuration >= _recordTime) {
+  //     stop();
+  //     print("STOP");
+  //     //await _postResult();
+  //     await _fetchResult();
+  //     //totalVolumes.clear();
+  //   } else if (_isSaved && _isFetched) {
+  //     start();
+  //   }
+  // }
 
   void _startTimer() {
     _timer.cancel();
