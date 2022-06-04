@@ -169,6 +169,7 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     //_restart();
     if (_recordDuration > _recordTime) {
       setState(() {
+        totalVolumes.addAll(noiseReading.volumes);
         _recordDuration = 0;
         if (++index > 2) index = 0;
         _cause = _causeList[index];
@@ -393,10 +394,12 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     if(!_hasModel){
       model = await tfl.Interpreter.fromAsset('saved_model.tflite');
     }
-    if(totalVolumes.length >= 89009){
+    if(totalVolumes.length >= 44100){
       var output = List.filled(1*10, 0).reshape([1,10]);
       //print("heysadfuiohaeroiuhvfaofgbue\n\n\n");
-      model.run(totalVolumes.sublist(0,89009), output);
+      var use = totalVolumes.sublist(0,44100);
+      print(use.length);
+      model.run(use, output);
       //print("AHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGB");
       print(output);
       totalVolumes.clear();
