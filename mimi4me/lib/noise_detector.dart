@@ -23,7 +23,6 @@ class NoiseDetector extends StatefulWidget {
 class _NoiseDetectorState extends State<NoiseDetector> {
   bool _isMicon = false;
   bool _isSaved = false;
-  bool _isPosted = false;
   bool _isFetched = false;
   bool _isRecording = false;
   bool _hasModel = false;
@@ -31,13 +30,10 @@ class _NoiseDetectorState extends State<NoiseDetector> {
   double _decibels = 0;
   int _recordDuration = 0;
 
-  var sampleRate = 22050;
-  var windowLength = 2048;
-  var windowStride = 512;
-  var numFilter = 20;
-  var numCoefs = 13;
-  List<double> mySignal = [];
   late tfl.Interpreter model;
+
+  final causes = {0:'AC',1:'Car Honks',2:'Kids Playing',3:'Dog Bark',4:'Drilling',
+    5:'Engine Idling',6:'Gun Shot',7:'Jackhammer',8:'Siren',9:'Street Music'};
 
   Color _color = Colors.blue;
 
@@ -164,12 +160,13 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       if (!_isRecording) {
         _isRecording = true;
       }
+      totalVolumes.addAll(noiseReading.volumes);
       //_decibels = noiseReading.meanDecibel;
     });
     //_restart();
     if (_recordDuration > _recordTime) {
       setState(() {
-        totalVolumes.addAll(noiseReading.volumes);
+
         _recordDuration = 0;
         if (++index > 2) index = 0;
         _cause = _causeList[index];
@@ -396,12 +393,20 @@ class _NoiseDetectorState extends State<NoiseDetector> {
     }
     if(totalVolumes.length >= 44100){
       var output = List.filled(1*10, 0).reshape([1,10]);
-      //print("heysadfuiohaeroiuhvfaofgbue\n\n\n");
-      var use = totalVolumes.sublist(0,44100);
-      print(use.length);
+      //var output = [0,0,0,0,0,0,0,0,0,0];
+      var use = totalVolumes.sublist(0,44100).reshape([1,44100]);
       model.run(use, output);
-      //print("AHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGBAHLISDUFNWOIEUDFHSAIOUDBFOUQEWFGB");
       print(output);
+      var index = 0;
+      var max = 0.0;
+      for (int i =0; i < output.length; i++){
+        if (output[1][i] > max){
+          max = output[1][i];
+          index = i;
+        }
+      }
+      print(causes[index]);
+      _cause = causes[index].toString();
       totalVolumes.clear();
     }
     else{
