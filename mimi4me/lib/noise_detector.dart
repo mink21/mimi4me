@@ -399,9 +399,9 @@ class _NoiseDetectorState extends State<NoiseDetector> {
       print(output);
       var index = 0;
       var max = 0.0;
-      for (int i =0; i < output.length; i++){
-        if (output[1][i] > max){
-          max = output[1][i];
+      for (int i =0; i < output[0].length; i++){
+        if (output[0][i] > max){
+          max = output[0][i];
           index = i;
         }
       }
