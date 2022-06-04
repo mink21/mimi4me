@@ -69,32 +69,56 @@ class _NotificationPageState extends State<NotificationPage> {
       children: List.generate(
         _notificationsItem.length,
         (int index) => card(
-          Icons.upcoming,
-          Colors.amber,
-          _notificationsItem[index],
-          _notificationsLevel[index],
-          _notificationsDate[index],
+          _notificationsItem[_notificationsItem.length - index - 1],
+          _notificationsLevel[_notificationsItem.length - index - 1],
+          _notificationsDate[_notificationsItem.length - index - 1],
         ),
       ),
     );
   }
 
-  Widget card(
-      IconData icon, Color color, String itemName, int itemLevel, String date) {
-    String duration = "-";
-    if (date != "") {
-      final durationTime = DateTime.now().difference(DateTime.parse(date));
-      print(durationTime.inHours);
-      if (durationTime.inMinutes.toDouble() <= 0) {
-        duration = "${durationTime.inSeconds}s";
-      } else if (durationTime.inHours.toDouble() <= 0) {
-        duration = "${durationTime.inMinutes}m";
-      } else if (durationTime.inDays.toDouble() <= 0) {
-        duration = "${durationTime.inHours}h";
-      } else {
-        duration = "${durationTime.inDays}d";
-      }
+  String getDuration(String date) {
+    final durationTime = DateTime.now().difference(DateTime.parse(date));
+    print(durationTime.inHours);
+    if (durationTime.inMinutes.toDouble() <= 0) {
+      return "${durationTime.inSeconds}s";
+    } else if (durationTime.inHours.toDouble() <= 0) {
+      return "${durationTime.inMinutes}m";
+    } else if (durationTime.inDays.toDouble() <= 0) {
+      return "${durationTime.inHours}h";
+    } else {
+      return "${durationTime.inDays}d";
     }
+  }
+
+  Color getColor(int level) {
+    if (level >= 100) {
+      return Colors.red;
+    } else if (level > 60) {
+      return Colors.orange;
+    } else if (level > 35) {
+      return Colors.yellow;
+    } else if (level > 30) {
+      return Colors.green;
+    } else {
+      return Colors.blue;
+    }
+  }
+
+  IconData getIcon(String name) {
+    switch (name) {
+      //TODO: Add Sound Icons here;
+      default:
+        return Icons.upcoming;
+    }
+  }
+
+  Widget card(String itemName, int itemLevel, String date) {
+    String duration = (date != "") ? getDuration(date) : "-";
+
+    Color _color = getColor(itemLevel);
+
+    IconData _icon = getIcon(itemName);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -107,7 +131,7 @@ class _NotificationPageState extends State<NotificationPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            child: Icon(icon, color: color),
+            child: Icon(_icon, color: _color),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +159,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     TextSpan(
                       text: itemName,
                       style: TextStyle(
-                        color: color,
+                        color: _color,
                       ),
                     ),
                     const TextSpan(

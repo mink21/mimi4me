@@ -20,18 +20,23 @@ String keyNotifSetting = 'notification';
 
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
-String keyDogBark = "Dog Bark";
+String keyDogBarkFlag = "Dog Bark";
 //TODO: Add other Sound key
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
-  final List<String> _totalNoise = ["1", "2", "3", "4"];
+  final List<String> _totalNoise = [
+    keyAcFlag,
+    keyKidsFlag,
+    keyDogBarkFlag,
+    //TODO: Add other Sound flag
+  ];
   bool _bgFlag = box.read(keyBgSetting) ?? false;
   bool _notifFlag = box.read(keyNotifSetting) ?? false;
 
   bool _acFlag = box.read(keyAcFlag) ?? false;
   bool _kidsFlag = box.read(keyKidsFlag) ?? false;
-  bool _dogFlag = box.read(keyDogBark) ?? false;
+  bool _dogFlag = box.read(keyDogBarkFlag) ?? false;
 
   //TODO: Add other Sound flag
 
@@ -95,7 +100,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } else {
       receivePort = await FlutterForegroundTask.startService(
         notificationTitle: 'Mimi4me',
-        notificationText: 'Notifcations',
+        notificationText: 'Notifcations is On',
         callback: startCallback,
       );
     }
@@ -138,12 +143,13 @@ class _SettingsPageState extends State<SettingsPage> {
         _registerReceivePort(newReceivePort);
       }
     });
-    if (widget._notifFlag) _startForegroundTask();
   }
 
   @override
   void dispose() {
     _closeReceivePort();
+    box.write(keyBgSetting, widget.bgFlag);
+    box.write(keyNotifSetting, widget.notifFlag);
     super.dispose();
   }
 
@@ -153,7 +159,7 @@ class _SettingsPageState extends State<SettingsPage> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
-        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -217,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _updateDogState() {
     setState(() => widget._dogFlag = !widget._dogFlag);
-    box.write(keyDogBark, widget._dogFlag);
+    box.write(keyDogBarkFlag, widget._dogFlag);
   }
 
   //TODO: Implement Other Sounds
@@ -230,8 +236,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void checkAllState() {
     Map<String, bool> _allState = {
-      "AC": widget._acFlag,
-      "Kids Playing": widget._kidsFlag
+      keyAcFlag: widget._acFlag,
+      keyKidsFlag: widget._kidsFlag,
+      keyDogBarkFlag: widget._dogFlag,
       //TODO: Add other Sound flag
     };
 
@@ -280,8 +287,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               value: widget.bgFlag,
               onChanged: (e) {
-                box.write(keyBgSetting, widget.bgFlag);
                 setState(() => widget._bgFlag = e!);
+                box.write(keyBgSetting, widget.bgFlag);
               },
             ),
             CheckboxListTile(
@@ -302,13 +309,13 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               value: widget.notifFlag,
               onChanged: (e) {
-                box.write(keyNotifSetting, widget.notifFlag);
                 setState(() {
                   widget._notifFlag = e!;
                   widget.notifFlag
                       ? _startForegroundTask()
                       : _stopForegroundTask();
                 });
+                box.write(keyNotifSetting, widget.notifFlag);
               },
             ),
             const ListTile(
