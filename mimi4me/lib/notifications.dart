@@ -70,7 +70,6 @@ class _NotificationPageState extends State<NotificationPage> {
         _notificationsItem.length,
         (int index) => card(
           Icons.upcoming,
-          Colors.amber,
           _notificationsItem[index],
           _notificationsLevel[index],
           _notificationsDate[index],
@@ -79,8 +78,7 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  Widget card(
-      IconData icon, Color color, String itemName, int itemLevel, String date) {
+  Widget card(IconData icon, String itemName, int itemLevel, String date) {
     String duration = "-";
     if (date != "") {
       final durationTime = DateTime.now().difference(DateTime.parse(date));
@@ -96,6 +94,19 @@ class _NotificationPageState extends State<NotificationPage> {
       }
     }
 
+    Color? _color;
+    if (itemLevel >= 100) {
+      _color = Colors.red;
+    } else if (itemLevel > 60) {
+      _color = Colors.orange;
+    } else if (itemLevel > 35) {
+      _color = Colors.yellow;
+    } else if (itemLevel > 30) {
+      _color = Colors.green;
+    } else {
+      _color = Colors.blue;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -107,7 +118,7 @@ class _NotificationPageState extends State<NotificationPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            child: Icon(icon, color: color),
+            child: Icon(icon, color: _color),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +146,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     TextSpan(
                       text: itemName,
                       style: TextStyle(
-                        color: color,
+                        color: _color,
                       ),
                     ),
                     const TextSpan(
