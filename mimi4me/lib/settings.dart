@@ -95,7 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } else {
       receivePort = await FlutterForegroundTask.startService(
         notificationTitle: 'Mimi4me',
-        notificationText: 'Notifcations',
+        notificationText: 'Notifcations is On',
         callback: startCallback,
       );
     }
@@ -138,12 +138,13 @@ class _SettingsPageState extends State<SettingsPage> {
         _registerReceivePort(newReceivePort);
       }
     });
-    if (widget._notifFlag) _startForegroundTask();
   }
 
   @override
   void dispose() {
     _closeReceivePort();
+    box.write(keyBgSetting, widget.bgFlag);
+    box.write(keyNotifSetting, widget.notifFlag);
     super.dispose();
   }
 
@@ -153,7 +154,7 @@ class _SettingsPageState extends State<SettingsPage> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
-        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -280,8 +281,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               value: widget.bgFlag,
               onChanged: (e) {
-                box.write(keyBgSetting, widget.bgFlag);
                 setState(() => widget._bgFlag = e!);
+                box.write(keyBgSetting, widget.bgFlag);
               },
             ),
             CheckboxListTile(
@@ -302,13 +303,13 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               value: widget.notifFlag,
               onChanged: (e) {
-                box.write(keyNotifSetting, widget.notifFlag);
                 setState(() {
                   widget._notifFlag = e!;
                   widget.notifFlag
                       ? _startForegroundTask()
                       : _stopForegroundTask();
                 });
+                box.write(keyNotifSetting, widget.notifFlag);
               },
             ),
             const ListTile(

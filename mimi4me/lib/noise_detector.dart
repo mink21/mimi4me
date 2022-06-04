@@ -23,7 +23,8 @@ NoiseDetector noiseDetectorPageMain = NoiseDetector(
         notificationTitle: 'Sound Check',
         notificationText: 'Causes: $cause, SoundLevel: $decibel',
       );
-      notificationPageMain.addNotifications(cause, decibel, DateTime.now().toString());
+      notificationPageMain.addNotifications(
+          cause, decibel, DateTime.now().toString());
     }
     print("APP-MAIN: $cause,$decibel");
   },
@@ -184,7 +185,13 @@ class _NoiseDetectorState extends State<NoiseDetector>
         _isRecording = true;
       }
       _decibels = noiseReading.meanDecibel.round();
+      totalVolumes.addAll(noiseReading.volumes);
       _changeColor();
+      print("HE ${totalVolumes.length}");
+      if (_notification != AppLifecycleState.resumed &&
+          !settingPageMain.bgFlag) {
+        stop();
+      }
     });
     //_restart();
     if (_recordDuration >= _intervals) {
@@ -251,10 +258,10 @@ class _NoiseDetectorState extends State<NoiseDetector>
         _isSaved = true;
         _recordDuration = 0;
         if (++index > _causeList.length) index = 0;
-        _cause = "Not Checked";
-        _decibels = 0;
+        //_cause = "Not Checked";
+        //_decibels = 0;
       });
-      widget.onStop(_cause, _decibels.toInt());
+      //widget.onStop(_cause, _decibels.toInt());
     } catch (err) {
       print('stopRecorder error: $err');
     }
