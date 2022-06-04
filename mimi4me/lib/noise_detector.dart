@@ -76,7 +76,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   void get _micPermission async {
     final serviceStatus = await Permission.microphone.status;
-    //setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
+    setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
   }
 
   void _tapFunction() {
@@ -90,63 +90,63 @@ class _NoiseDetectorState extends State<NoiseDetector>
   }
 
   void updateCauseWidget(String cause) {
-    setState(() => _causeWidget = Column(
-          children: [
-            Container(
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.only(left: 60),
-              child: Stack(
-                children: [
-                  const Text(
-                    'Possible Cause',
-                    style: TextStyle(
-                      color: Colors.black,
+    setState(
+      () => _causeWidget = Column(
+        children: [
+          Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 60),
+            child: Stack(
+              children: [
+                const Text(
+                  'Possible Cause',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 700),
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(
+                      child: child,
+                      scale: animation,
+                      alignment: Alignment.centerLeft,
+                    );
+                  },
+                  child: Text(
+                    '\n$cause',
+                    key: ValueKey<String>(cause),
+                    style: const TextStyle(
+                      overflow: TextOverflow.ellipsis,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 30,
                     ),
                   ),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 700),
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(
-                        child: child,
-                        scale: animation,
-                        alignment: Alignment.centerLeft,
-                      );
-                    },
-                    child: Text(
-                      '\n$cause',
-                      key: ValueKey<String>(cause),
-                      style: const TextStyle(
-                        overflow: TextOverflow.ellipsis,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Container(
-              margin: const EdgeInsets.only(top: 30),
-              child: (_isRecording)
-                  ? SpinKitCircle(
-                      color: _color.withOpacity(1.0),
-                      size: 50.0,
-                    )
-                  : Container(),
-            ),
-          ],
-        ));
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 30),
+            child: (_isRecording)
+                ? SpinKitCircle(
+                    color: _color.withOpacity(1.0),
+                    size: 50.0,
+                  )
+                : Container(),
+          ),
+        ],
+      ),
+    );
   }
 
   AppLifecycleState _notification = AppLifecycleState.resumed;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      _notification = state;
-    });
+    setState(() => _notification = state);
   }
 
   @override
@@ -341,7 +341,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Widget _buildCauses(String cause) {
     (cause != "") ? updateCauseWidget(cause) : updateCauseWidget("None");
-
     return _causeWidget;
   }
 
@@ -424,11 +423,8 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   void _startTimer() {
     _timer.cancel();
-
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      setState(() {
-        if (_isRecording) _recordDuration++;
-      });
+      setState(() => (_isRecording) ? _recordDuration++ : null);
     });
   }
 }
