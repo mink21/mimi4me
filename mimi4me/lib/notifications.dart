@@ -79,7 +79,6 @@ class _NotificationPageState extends State<NotificationPage> {
 
   String getDuration(String date) {
     final durationTime = DateTime.now().difference(DateTime.parse(date));
-    print(durationTime.inHours);
     if (durationTime.inMinutes.toDouble() <= 0) {
       return "${durationTime.inSeconds}s";
     } else if (durationTime.inHours.toDouble() <= 0) {

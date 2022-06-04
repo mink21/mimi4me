@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'noise.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
 import 'package:vibration/vibration.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
+import 'noise.dart';
 import 'settings.dart';
 import 'notifications.dart';
 
@@ -41,10 +37,22 @@ class NoiseDetector extends StatefulWidget {
 class _NoiseDetectorState extends State<NoiseDetector>
     with WidgetsBindingObserver {
   bool _isMicon = false;
-  bool _isSaved = false;
-  bool _isPosted = false;
-  bool _isFetched = false;
   bool _isRecording = false;
+
+  late tfl.Interpreter model;
+
+  final causes = {
+    0: 'AC',
+    1: 'Car Honks',
+    2: 'Kids Playing',
+    3: 'Dog Bark',
+    4: 'Drilling',
+    5: 'Engine Idling',
+    6: 'Gun Shot',
+    7: 'Jackhammer',
+    8: 'Siren',
+    9: 'Street Music'
+  };
 
   int _decibels = 0;
   int _recordDuration = 0;
@@ -52,17 +60,13 @@ class _NoiseDetectorState extends State<NoiseDetector>
   Color _color = Colors.blue;
 
   String _cause = "";
-  String _path = "";
 
   int index = 0;
-  List<double> _decibelList = [60, 80, 120];
-  List<String> _causeList = settingPageMain.totalNoise;
+  final List<String> _causeList = settingPageMain.totalNoise;
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
-  late Uri _uri;
-
-  int _intervals = 4;
+  final int _intervals = 4;
 
   Widget _causeWidget = Container();
 
@@ -70,20 +74,9 @@ class _NoiseDetectorState extends State<NoiseDetector>
   late NoiseMeter _noiseMeter;
   final List<double> totalVolumes = [];
 
-  void get _apiUrl async {
-    await dotenv.load(fileName: ".env");
-    final url = dotenv.env['apiUrl']!;
-    setState(() => _uri = Uri.parse(url));
-  }
-
-  void get _localPath async {
-    final directory = await getExternalCacheDirectories();
-    setState(() => _path = directory![0].path + "/audio.mp4");
-  }
-
   void get _micPermission async {
     final serviceStatus = await Permission.microphone.status;
-    setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
+    //setState(() => _isMicon = serviceStatus == ServiceStatus.enabled);
   }
 
   void _tapFunction() {
@@ -158,11 +151,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   @override
   void initState() {
-    _localPath;
-    _apiUrl;
     _micPermission;
-
-    _isSaved = false;
     _isRecording = false;
 
     super.initState();
@@ -186,19 +175,16 @@ class _NoiseDetectorState extends State<NoiseDetector>
       _decibels = noiseReading.meanDecibel.round();
       totalVolumes.addAll(noiseReading.volumes);
       _changeColor();
-      print("HE ${totalVolumes.length}");
       if (_notification != AppLifecycleState.resumed &&
           !settingPageMain.bgFlag) {
         stop();
       }
     });
-    //_restart();
     if (_recordDuration >= _intervals) {
+      _fetchResult();
       setState(() {
         _recordDuration = 0;
         if (index >= _causeList.length) index = 0;
-        _cause = _causeList[index++];
-        //_decibels = _decibelList[index];
       });
 
       print(_cause);
@@ -216,15 +202,9 @@ class _NoiseDetectorState extends State<NoiseDetector>
         FlutterForegroundTask.launchApp('/');
       }
       Navigator.of(context).pushNamed('/alert');*/
-      _postResult();
-      _fetchResult();
       widget.onStop(_cause, _decibels.toInt());
       _changeColor();
     }
-    //print(noiseReading.toString());
-    //print(totalVolumes.length);
-    if (totalVolumes.length > 100000) totalVolumes.clear();
-    //totalVolumes.addAll(noiseReading.volumes);
   }
 
   void onError(Object error) {
@@ -236,10 +216,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
     try {
       _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
       _startTimer();
-      setState(() {
-        _isFetched = false;
-        _isSaved = false;
-      });
     } catch (err) {
       print(err);
     }
@@ -254,13 +230,8 @@ class _NoiseDetectorState extends State<NoiseDetector>
       }
       setState(() {
         _isRecording = false;
-        _isSaved = true;
         _recordDuration = 0;
-        if (++index > _causeList.length) index = 0;
-        //_cause = "Not Checked";
-        //_decibels = 0;
       });
-      //widget.onStop(_cause, _decibels.toInt());
     } catch (err) {
       print('stopRecorder error: $err');
     }
@@ -423,30 +394,31 @@ class _NoiseDetectorState extends State<NoiseDetector>
     }
   }
 
-  Future<void> _postResult() async {
-    /*var request = http.MultipartRequest("POST", _uri);
-    request.files.add(await http.MultipartFile.fromPath(
-      'audio',
-      _path,
-      contentType: MediaType('audio', 'mp4'),
-    ));
-
-    final response = await request.send();
-    setState(() => _isPosted = response.statusCode == 200);*/
-    setState(() => _isPosted = true);
+  int getIndex(List<dynamic> output) {
+    int index = 0;
+    double max = 0.0;
+    for (int i = 0; i < output[0].length; i++) {
+      if (output[0][i] > max) {
+        max = output[0][i];
+        index = i;
+      }
+    }
+    return index;
   }
 
   Future<void> _fetchResult() async {
-    if (!_isPosted) return;
-    final response = await http.get(_uri);
-    var data = jsonDecode(response.body);
-    setState(() {
-      /*_decibels = data["decibels"];
-      _cause = _decibels > 0 ? data["cause"] : "None";*/
-      _recordDuration = 0;
-      _isFetched = true;
-    });
-
+    model = await tfl.Interpreter.fromAsset('saved_model.tflite');
+    if (totalVolumes.length >= 44100) {
+      var output = List.filled(1 * 10, 0).reshape([1, 10]);
+      var use = totalVolumes.sublist(0, 44100).reshape([1, 44100]);
+      model.run(use, output);
+      final indexResult = getIndex(output);
+      print("FETCH RESULT: ${causes[indexResult]}");
+      setState(() => _cause = causes[indexResult].toString());
+      totalVolumes.clear();
+    } else {
+      print("NOT ENOUGH ${totalVolumes.length}");
+    }
     _changeColor();
   }
 
