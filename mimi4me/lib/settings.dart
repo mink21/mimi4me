@@ -236,8 +236,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void checkAllState() {
     Map<String, bool> _allState = {
-      "AC": widget._acFlag,
-      "Kids Playing": widget._kidsFlag
+      keyAcFlag: widget._acFlag,
+      keyKidsFlag: widget._kidsFlag,
+      keyDogBarkFlag: widget._dogFlag,
       //TODO: Add other Sound flag
     };
 

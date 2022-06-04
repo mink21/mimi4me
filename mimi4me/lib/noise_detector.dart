@@ -16,9 +16,8 @@ import 'notifications.dart';
 
 NoiseDetector noiseDetectorPageMain = NoiseDetector(
   onStop: (cause, decibel) {
-    if ((settingPageMain.notifFlag &&
-            settingPageMain.selectedSounds.contains(cause)) ||
-        true) {
+    if (settingPageMain.notifFlag &&
+        settingPageMain.selectedSounds.contains(cause)) {
       FlutterForegroundTask.updateService(
         notificationTitle: 'Sound Check',
         notificationText: 'Causes: $cause, SoundLevel: $decibel',
