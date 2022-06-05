@@ -1,9 +1,9 @@
-#Mimi4me model
-##Input: 
+# Mimi4me model
+## Input: 
 
 Single array of size [   1  44100]. Contains time series of audio clip in question. Model was trained on 4 second clips with sample rate of 11025 so suggested to be used on similar input
 
-##Output: 
+## Output: 
 
 Single array of size [   1   10]. Contains the chances of each cause. Mapped as follows:
 
@@ -21,7 +21,7 @@ Single array of size [   1   10]. Contains the chances of each cause. Mapped as 
 | 8 | siren |
 | 9 | street_music |
 
-##Model layers:
+## Model layers:
 
 1-	Custom layer to convert time series to mel spectrogram using tf.stft and matrix manipulation. Also reshapes output to [     1    87   8     1] from [   1   44100]
 
