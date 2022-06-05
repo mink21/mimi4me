@@ -73,21 +73,20 @@ class _SettingsPageState extends State<SettingsPage> {
         channelImportance: NotificationChannelImportance.DEFAULT,
         enableVibration: true,
         playSound: true,
-        priority: NotificationPriority.HIGH,
+        priority: NotificationPriority.DEFAULT,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
           resPrefix: ResourcePrefix.ic,
-          name: 'launcher',
-          backgroundColor: Colors.blue,
+          name: 'new_logo_sm',
+          backgroundColor: Colors.white,
         ),
-        buttons: [
-          const NotificationButton(id: 'stop', text: 'Stop'),
-        ],
+        isSticky: false,
+        showWhen: true,
       ),
       foregroundTaskOptions: const ForegroundTaskOptions(
         interval: 5000,
-        autoRunOnBoot: true,
-        allowWifiLock: true,
+        autoRunOnBoot: false,
+        allowWifiLock: false,
       ),
       printDevLog: true,
     );
