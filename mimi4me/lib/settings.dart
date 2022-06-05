@@ -348,7 +348,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: LimitedBox(
                 maxHeight: 300, //最大の高さを指定
                 child: ListView.builder(
-                  itemCount: 5,
+                  itemCount: 1,
                   //TODO: Set to 1 , currently set as 5 to show scroll feature
                   itemBuilder: (BuildContext context, int index) {
                     return Column(
