@@ -26,6 +26,7 @@ Future main() async {
   runApp(const MyApp());
 }
 
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -55,8 +56,11 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
+  final PageController _controller = PageController();
+
   void _onItemTapped(int index) async {
     setState(() => _selectedIndex = index);
+    _controller.jumpToPage(index);
   }
 
   final List<Widget> _pageList = [
@@ -86,7 +90,13 @@ class _MainPageState extends State<MainPage> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      body: _pageList[_selectedIndex],
+      body: PageView(
+        controller: _controller,
+        children: _pageList,
+        onPageChanged: (index) {
+          setState(() => _selectedIndex = index);
+        },
+      ),
     );
   }
 }
