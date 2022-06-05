@@ -1,3 +1,5 @@
+// ignore_for_file: use_full_hex_values_for_flutter_colors
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
@@ -25,10 +27,29 @@ NoiseDetector noiseDetectorPageMain = NoiseDetector(
   },
 );
 
+BoxDecoration backgroundDecoration = BoxDecoration(
+  gradient: LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      noiseDetectorPageMain.color.withOpacity(0.0),
+      noiseDetectorPageMain.color.withOpacity(0.05),
+      noiseDetectorPageMain.color.withOpacity(0.1),
+      noiseDetectorPageMain.color.withOpacity(0.15),
+      noiseDetectorPageMain.color.withOpacity(0.2),
+    ],
+  ),
+);
+
+// ignore: must_be_immutable
 class NoiseDetector extends StatefulWidget {
   final void Function(String cause, int decibel) onStop;
 
-  const NoiseDetector({required this.onStop, Key? key}) : super(key: key);
+  NoiseDetector({required this.onStop, Key? key}) : super(key: key);
+
+  Color _color = Colors.orange;
+
+  Color get color => _color;
 
   @override
   _NoiseDetectorState createState() => _NoiseDetectorState();
@@ -56,8 +77,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   int _decibels = 0;
   int _recordDuration = 0;
-
-  Color _color = Colors.blue;
 
   String _cause = "";
 
@@ -98,12 +117,12 @@ class _NoiseDetectorState extends State<NoiseDetector>
             padding: const EdgeInsets.only(left: 60),
             child: Stack(
               children: [
-                const Text(
-                  'Possible Cause',
+                Text(
+                  'Possible Sounds',
                   style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    color: widget.color,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
                   ),
                 ),
                 AnimatedSwitcher(
@@ -132,7 +151,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
             margin: const EdgeInsets.only(top: 30),
             child: (_isRecording)
                 ? SpinKitCircle(
-                    color: _color.withOpacity(1.0),
+                    color: widget.color.withOpacity(1.0),
                     size: 50.0,
                   )
                 : Container(),
@@ -248,19 +267,30 @@ class _NoiseDetectorState extends State<NoiseDetector>
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: const Alignment(0, 2),
-            end: const Alignment(0, -0.7),
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              _color.withOpacity(0.3),
-              Colors.white,
+              widget.color.withOpacity(0.0),
+              widget.color.withOpacity(0.05),
+              widget.color.withOpacity(0.1),
+              widget.color.withOpacity(0.15),
+              widget.color.withOpacity(0.2),
             ],
           ),
         ),
         child: Column(
           children: [
             Container(
+              alignment: Alignment.topCenter,
+              padding: const EdgeInsets.all(5),
               margin: const EdgeInsets.only(top: 15),
-              child: const Text("HOME"),
+              child: const Text(
+                "HOME",
+                style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300),
+              ),
             ),
             Container(
               margin: const EdgeInsets.only(bottom: 15),
@@ -294,28 +324,36 @@ class _NoiseDetectorState extends State<NoiseDetector>
             shape: BoxShape.circle,
             border: Border.all(
               width: 30.0,
-              color: _color,
+              color: widget.color,
             ),
           ),
           child: Align(
             alignment: Alignment.center,
             child: RichText(
-              maxLines: 1,
+              maxLines: 2,
               textAlign: TextAlign.center,
               text: TextSpan(
                 style: TextStyle(
                   fontSize: 14.0,
-                  color: _color,
+                  color: widget.color,
                 ),
                 children: <TextSpan>[
                   TextSpan(
                     text: noiseValue.toString(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 60,
+                      color: widget.color,
                     ),
                   ),
-                  const TextSpan(text: 'db'),
+                  const TextSpan(
+                    text: '\ndB',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 24,
+                      color: Color(0xffbacb3bf),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -380,16 +418,16 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Future<void> _changeColor() async {
     if (_decibels >= 100) {
-      setState(() => _color = Colors.red);
+      setState(() => widget._color = Colors.red);
       await _vibrate();
     } else if (_decibels > 60) {
-      setState(() => _color = Colors.orange);
+      setState(() => widget._color = Colors.orange);
     } else if (_decibels > 35) {
-      setState(() => _color = Colors.yellow);
+      setState(() => widget._color = Colors.yellow);
     } else if (_decibels > 30) {
-      setState(() => _color = Colors.green);
+      setState(() => widget._color = Colors.green);
     } else {
-      setState(() => _color = Colors.blue);
+      setState(() => widget._color = Colors.blue);
     }
   }
 

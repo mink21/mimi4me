@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'main.dart';
+import 'noise_detector.dart';
 
 SettingsPage settingPageMain = SettingsPage();
 
@@ -261,6 +262,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.all(5),
+        decoration: backgroundDecoration,
         child: ListView(
           children: [
             Container(
