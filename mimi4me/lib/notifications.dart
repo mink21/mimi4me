@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mimi4me/noise_detector.dart';
 
 import 'settings.dart';
 
@@ -195,6 +196,7 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
           ),
           Container(
+            decoration: backgroundDecoration,
             padding: const EdgeInsets.all(5),
             child: Column(
               children: [
@@ -210,7 +212,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   ),
                 ),
                 Container(
-                  height: MediaQuery.of(context).size.height - 140, //最大の高さを指定,
+                  height: MediaQuery.of(context).size.height - 172, //最大の高さを指定,
                   margin: const EdgeInsets.only(top: 5),
                   padding:
                       const EdgeInsets.symmetric(vertical: 20, horizontal: 10),

@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'main.dart';
+import 'noise_detector.dart';
 
 SettingsPage settingPageMain = SettingsPage();
 
@@ -261,6 +262,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.all(5),
+        decoration: backgroundDecoration,
         child: ListView(
           children: [
             Container(
@@ -346,7 +348,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: LimitedBox(
                 maxHeight: 300, //最大の高さを指定
                 child: ListView.builder(
-                  itemCount: 5,
+                  itemCount: 1,
                   //TODO: Set to 1 , currently set as 5 to show scroll feature
                   itemBuilder: (BuildContext context, int index) {
                     return Column(
