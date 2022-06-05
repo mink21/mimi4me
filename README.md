@@ -94,8 +94,9 @@ flutter run
 
 ### Acknowledgements
 
-Reference for Machine Learning
+References for Machine Learning
 - Prabhavsingh. “UrbanSound8K - Classification.” Kaggle, Kaggle, 16 Mar. 2020, https://www.kaggle.com/code/prabhavsingh/urbansound8k-classification/notebook?fbclid=IwAR3RIRwc9GrBzJ8qboCbCMHVBflFf1_IgjABkxt3uiRnS5yyNHjxCAOovnk.
+- Team, K. (n.d.). Keras Documentation: Melgan-based spectrogram inversion using feature matching. Keras. Retrieved June 5, 2022, from https://keras.io/examples/audio/melgan_spectrogram_inversion/ 
 
 Reference for Icon
 - Ear by Andreas Wikström from NounProject.com
