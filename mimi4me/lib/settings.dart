@@ -37,8 +37,6 @@ final List<String> _totalNoise = [
   'Street Music'
 ];
 
-//TODO: Add other Sound key
-
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
   List<String> get totalNoise => _totalNoise;
@@ -325,10 +323,9 @@ class _SettingsPageState extends State<SettingsPage> {
               height: 340,
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
               child: LimitedBox(
-                maxHeight: 300, //最大の高さを指定
+                maxHeight: 300,
                 child: ListView.builder(
                   itemCount: 1,
-                  //TODO: Set to 1 , currently set as 5 to show scroll feature
                   itemBuilder: (BuildContext context, int index) {
                     return Column(
                         mainAxisAlignment: MainAxisAlignment.start,
