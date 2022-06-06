@@ -62,18 +62,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   late tfl.Interpreter model;
 
-  final causes = {
-    0: 'AC',
-    1: 'Car Honks',
-    2: 'Kids Playing',
-    3: 'Dog Bark',
-    4: 'Drilling',
-    5: 'Engine Idling',
-    6: 'Gun Shot',
-    7: 'Jackhammer',
-    8: 'Siren',
-    9: 'Street Music'
-  };
+  final causes = settingPageMain.totalNoise.asMap();
 
   int _decibels = 0;
   int _recordDuration = 0;

@@ -24,30 +24,71 @@ String keyKidsFlag = "Kids Playing";
 String keyDogBarkFlag = "Dog Bark";
 String keyDrilling = "Drilling";
 
-final List<String> _totalNoise = [
-  'AC',
-  'Car Honks',
-  'Kids Playing',
-  'Dog Bark',
-  'Drilling',
-  'Engine Idling',
-  'Gun Shot',
-  'Jackhammer',
-  'Siren',
-  'Street Music'
-];
+class Sound {
+  final Color color;
+  final Color lighColor;
+  final IconData icon;
+  Sound({
+    required this.color,
+    required this.lighColor,
+    required this.icon,
+  });
+}
+
+final Map<String, Sound> _totalNoise = {
+  'AC': Sound(
+      color: Colors.blue,
+      lighColor: Colors.blue.shade100,
+      icon: Icons.question_mark),
+  'Car Honks': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.car_rental_outlined),
+  'Kids Playing': Sound(
+      color: Colors.blue,
+      lighColor: Colors.blue.shade100,
+      icon: Icons.hourglass_bottom),
+  'Dog Bark': Sound(
+      color: Colors.orange,
+      lighColor: Colors.orange.shade100,
+      icon: Icons.question_mark),
+  'Drilling': Sound(
+      color: Colors.orange,
+      lighColor: Colors.orange.shade100,
+      icon: Icons.question_mark),
+  'Engine Idling': Sound(
+      color: Colors.green,
+      lighColor: Colors.green.shade100,
+      icon: Icons.car_rental_outlined),
+  'Gun Shot': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.question_mark),
+  'Jackhammer': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.question_mark),
+  'Siren': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.question_mark),
+  'Street Music': Sound(
+      color: Colors.green,
+      lighColor: Colors.green.shade100,
+      icon: Icons.music_note),
+};
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
-  List<String> get totalNoise => _totalNoise;
+  List<String> get totalNoise => _totalNoise.keys.toList();
 
   bool _bgFlag = box.read(keyBgSetting) ?? false;
   bool _notifFlag = box.read(keyNotifSetting) ?? false;
 
   final Map<String, bool> _flags = Map.fromIterables(
-      _totalNoise,
+      _totalNoise.keys.toList(),
       List.generate(_totalNoise.length,
-          (index) => box.read(_totalNoise[index]) ?? false));
+          (index) => box.read(_totalNoise.keys.toList()[index]) ?? false));
 
   List<String> _selectedSounds =
       (box.read(keySoundList) ?? _totalNoise).cast<String>() as List<String>;
@@ -160,8 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
-  Widget card(String name, bool state, Color lightColor, Color boldColor,
-      Function(String) update) {
+  Widget card(String name, bool state, Sound sound, Function(String) update) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -172,17 +212,17 @@ class _SettingsPageState extends State<SettingsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
             decoration: BoxDecoration(
-              color: lightColor,
+              color: sound.lighColor,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(10.0),
                 bottomLeft: Radius.circular(10.0),
               ),
             ),
             child: Icon(
-              Icons.hourglass_empty,
-              color: boldColor,
+              sound.icon,
+              color: sound.color,
             ),
           ),
           InkWell(
@@ -196,7 +236,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     bottom: 10,
                     left: 8,
                   ),
-                  child: Text(name),
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400),
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.only(right: 5),
@@ -338,8 +384,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               (index) => card(
                                 widget.totalNoise[index],
                                 widget.flags[widget.totalNoise[index]]!,
-                                Colors.lightBlue.shade100,
-                                Colors.lightBlue,
+                                _totalNoise[widget.totalNoise[index]]!,
                                 _updateFlag,
                               ),
                             ),
