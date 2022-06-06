@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:audio_streamer/audio_streamer.dart';
 import 'package:flutter/services.dart';
 
-/// A [NoiseMeter] object is reponsible for connecting to to
-/// the native environment.
 class NoiseMeter {
   final AudioStreamer _streamer = AudioStreamer();
   final Function _onError;
@@ -13,7 +11,6 @@ class NoiseMeter {
 
   NoiseMeter(this._onError);
 
-  /// The rate at which the audio is sampled
   static int get sampleRate => AudioStreamer.sampleRate;
 
   late StreamController<NoiseReading> _controller;
@@ -27,9 +24,6 @@ class NoiseMeter {
     return _stream!;
   }
 
-  /// Whenever an array of PCM data comes in,
-  /// they are converted to a [NoiseReading],
-  /// and then send out via the stream
   void _onAudio(List<double> buffer) {
     _controller.add(NoiseReading(buffer));
   }
@@ -39,39 +33,27 @@ class NoiseMeter {
     _controller.addError(e);
   }
 
-  /// Start noise monitoring.
-  /// This will trigger a permission request
-  /// if it hasn't yet been granted
   void _start() async {
-    try {
-      _streamer.start(_onAudio, _onInternalError);
-    } catch (error) {
-      print(error);
-    }
+    _streamer.start(_onAudio, _onInternalError);
   }
 
-  /// Stop noise monitoring
   void _stop() async {
     await _streamer.stop();
   }
 }
 
-/// A [NoiseReading] holds a decibel value for a particular noise level reading.
 class NoiseReading {
   late double _meanDecibel, _maxDecibel;
   List<double> _volumes = [];
 
   NoiseReading(List<double> volumes) {
-    /// Sorted volumes such that the last element is max amplitude
     _volumes = volumes;
     volumes.sort();
 
-    /// Compute average peak-amplitude using the min and max amplitude
     double min = volumes.first;
     double max = volumes.last;
     double mean = 0.5 * (min.abs() + max.abs());
 
-    /// Max amplitude is 2^15
     double maxAmp = pow(2, 15) + 0.0;
 
     _maxDecibel = 20 * log(maxAmp * max) * log10e;

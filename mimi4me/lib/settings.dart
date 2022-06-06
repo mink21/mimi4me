@@ -10,10 +10,7 @@ import 'noise_detector.dart';
 SettingsPage settingPageMain = SettingsPage();
 
 final box = GetStorage();
-/*
-String keyInterval = 'interval';
-String keyCountry = 'country';
-*/
+
 String keySoundList = 'sounds';
 
 String keyBgSetting = 'background';
@@ -39,23 +36,24 @@ final Map<String, Sound> _totalNoise = {
   'AC': Sound(
       color: Colors.blue,
       lighColor: Colors.blue.shade100,
-      icon: Icons.question_mark),
+      icon: Icons.air_outlined),
   'Car Honks': Sound(
       color: Colors.red,
       lighColor: Colors.red.shade100,
-      icon: Icons.car_rental_outlined),
+      icon: Icons.bus_alert_sharp),
   'Kids Playing': Sound(
       color: Colors.blue,
       lighColor: Colors.blue.shade100,
-      icon: Icons.hourglass_bottom),
+      icon: Icons.add_reaction_rounded),
   'Dog Bark': Sound(
-      color: Colors.orange,
-      lighColor: Colors.orange.shade100,
-      icon: Icons.question_mark),
+    color: Colors.orange,
+    lighColor: Colors.orange.shade100,
+    icon: const IconData(0xf479),
+  ),
   'Drilling': Sound(
       color: Colors.orange,
       lighColor: Colors.orange.shade100,
-      icon: Icons.question_mark),
+      icon: Icons.construction_rounded),
   'Engine Idling': Sound(
       color: Colors.green,
       lighColor: Colors.green.shade100,
@@ -67,11 +65,11 @@ final Map<String, Sound> _totalNoise = {
   'Jackhammer': Sound(
       color: Colors.red,
       lighColor: Colors.red.shade100,
-      icon: Icons.question_mark),
+      icon: Icons.question_answer),
   'Siren': Sound(
       color: Colors.red,
       lighColor: Colors.red.shade100,
-      icon: Icons.question_mark),
+      icon: Icons.campaign_rounded),
   'Street Music': Sound(
       color: Colors.green,
       lighColor: Colors.green.shade100,
@@ -198,9 +196,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget card(String name, bool state, Sound sound, Function(String) update) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(10.0)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

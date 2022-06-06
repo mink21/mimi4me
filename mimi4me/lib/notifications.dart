@@ -106,11 +106,50 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   IconData getIcon(String name) {
-    switch (name) {
-      //TODO: Add Sound Icons here;
-      default:
-        return Icons.upcoming;
-    }
+    final Map<String, Sound> _totalNoise = {
+      'AC': Sound(
+          color: Colors.blue,
+          lighColor: Colors.blue.shade100,
+          icon: Icons.air_outlined),
+      'Car Honks': Sound(
+          color: Colors.red,
+          lighColor: Colors.red.shade100,
+          icon: Icons.bus_alert_sharp),
+      'Kids Playing': Sound(
+          color: Colors.blue,
+          lighColor: Colors.blue.shade100,
+          icon: Icons.add_reaction_rounded),
+      'Dog Bark': Sound(
+        color: Colors.orange,
+        lighColor: Colors.orange.shade100,
+        icon: const IconData(0xf479),
+      ),
+      'Drilling': Sound(
+          color: Colors.orange,
+          lighColor: Colors.orange.shade100,
+          icon: Icons.construction_rounded),
+      'Engine Idling': Sound(
+          color: Colors.green,
+          lighColor: Colors.green.shade100,
+          icon: Icons.car_rental_outlined),
+      'Gun Shot': Sound(
+          color: Colors.red,
+          lighColor: Colors.red.shade100,
+          icon: Icons.question_mark),
+      'Jackhammer': Sound(
+          color: Colors.red,
+          lighColor: Colors.red.shade100,
+          icon: Icons.question_answer),
+      'Siren': Sound(
+          color: Colors.red,
+          lighColor: Colors.red.shade100,
+          icon: Icons.campaign_rounded),
+      'Street Music': Sound(
+          color: Colors.green,
+          lighColor: Colors.green.shade100,
+          icon: Icons.music_note),
+    };
+    return _totalNoise[name]!.icon;
   }
 
   Widget card(String itemName, int itemLevel, String date) {
@@ -122,9 +161,9 @@ class _NotificationPageState extends State<NotificationPage> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(15.0)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -183,21 +222,6 @@ class _NotificationPageState extends State<NotificationPage> {
         child: Stack(
           children: [
             Container(
-              alignment: Alignment.topRight,
-              padding: const EdgeInsets.all(5),
-              child: ElevatedButton(
-                onPressed: () {
-                  widget.deleteAllNotifications();
-                  setState(() {
-                    _notificationsItem.clear();
-                    _notificationsLevel.clear();
-                    _notificationsDate.clear();
-                  });
-                },
-                child: const Text("clear"),
-              ),
-            ),
-            Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -226,13 +250,11 @@ class _NotificationPageState extends State<NotificationPage> {
                     ),
                   ),
                   Container(
-                    height:
-                        MediaQuery.of(context).size.height - 172, //最大の高さを指定,
+                    height: MediaQuery.of(context).size.height - 172,
                     margin: const EdgeInsets.only(top: 5),
                     padding: const EdgeInsets.symmetric(
                         vertical: 20, horizontal: 10),
                     child: LimitedBox(
-                      //maxHeight: MediaQuery.of(context).size.height - 200, //最大の高さを指定
                       child: ListView.builder(
                         itemCount: 1,
                         itemBuilder: (BuildContext context, int index) {
