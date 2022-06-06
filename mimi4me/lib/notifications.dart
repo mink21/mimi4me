@@ -236,7 +236,6 @@ class _NotificationPageState extends State<NotificationPage> {
                       //maxHeight: MediaQuery.of(context).size.height - 200, //最大の高さを指定
                       child: ListView.builder(
                         itemCount: 1,
-                        //TODO: Set to 1 , currently set as 5 to show scroll feature
                         itemBuilder: (BuildContext context, int index) {
                           return allCard();
                         },

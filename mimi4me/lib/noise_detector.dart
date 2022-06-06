@@ -56,7 +56,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
   String _cause = "";
 
   int index = 0;
-  final List<String> _causeList = settingPageMain.totalNoise;
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
@@ -180,7 +179,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
       if (!_isRecording) {
         _isRecording = true;
       }
-      //_decibels = noiseReading.meanDecibel.round();
+      _decibels = noiseReading.meanDecibel.round();
       totalVolumes.addAll(noiseReading.volumes);
       _changeColor();
       if (_notification != AppLifecycleState.resumed &&
@@ -192,17 +191,12 @@ class _NoiseDetectorState extends State<NoiseDetector>
       _fetchResult();
       setState(() {
         _recordDuration = 0;
-        (index >= _causeList.length) ? index = 0 : index++;
-        final _decibelList = [10, 40, 60, 80, 100];
-        _decibels = _decibelList[index];
       });
 
-      print(_cause);
       if (_notification != AppLifecycleState.resumed &&
           !settingPageMain.bgFlag) {
         stop();
       }
-      print("CURRENT STATE: $_notification");
 
       /*
       print("CURRENT STATE: $_notification");
@@ -218,39 +212,28 @@ class _NoiseDetectorState extends State<NoiseDetector>
   }
 
   void onError(Object error) {
-    print(error.toString());
     _isRecording = false;
   }
 
   void start() async {
-    try {
-      _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
-      _startTimer();
-    } catch (err) {
-      print(err);
-    }
+    _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
+    _startTimer();
   }
 
   void stop() async {
-    try {
-      if (_noiseSubscription != null) {
-        _noiseSubscription!.cancel();
-        _noiseSubscription = null;
-        totalVolumes.clear();
-      }
-      setState(() {
-        _isRecording = false;
-        _recordDuration = 0;
-      });
-    } catch (err) {
-      print('stopRecorder error: $err');
+    if (_noiseSubscription != null) {
+      _noiseSubscription!.cancel();
+      _noiseSubscription = null;
+      totalVolumes.clear();
     }
+    setState(() {
+      _isRecording = false;
+      _recordDuration = 0;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "CURRENT STATE: $_notification, SOUND: ${settingPageMain.selectedSounds}");
     return Scaffold(
       body: AnimatedContainer(
         duration: const Duration(seconds: 2),
@@ -414,16 +397,16 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Future<void> _changeColor() async {
     if (_decibels >= 100) {
-      noiseDetectorPageMain._color = Colors.red;
+      setState(() => noiseDetectorPageMain._color = Colors.red);
       await _vibrate();
     } else if (_decibels > 60) {
-      noiseDetectorPageMain._color = Colors.orange;
+      setState(() => noiseDetectorPageMain._color = Colors.orange);
     } else if (_decibels > 35) {
-      noiseDetectorPageMain._color = Colors.yellow;
+      setState(() => noiseDetectorPageMain._color = Colors.yellow);
     } else if (_decibels > 30) {
-      noiseDetectorPageMain._color = Colors.green;
+      setState(() => noiseDetectorPageMain._color = Colors.green);
     } else {
-      noiseDetectorPageMain._color = Colors.blue;
+      setState(() => noiseDetectorPageMain._color = Colors.blue);
     }
   }
 
@@ -449,8 +432,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
       print("FETCH RESULT: ${causes[indexResult]}");
       setState(() => _cause = causes[indexResult].toString());
       totalVolumes.clear();
-    } else {
-      print("NOT ENOUGH ${totalVolumes.length}");
     }
     _changeColor();
   }

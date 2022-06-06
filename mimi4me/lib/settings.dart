@@ -165,9 +165,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (receivePort != null) {
       _receivePort = receivePort;
-      _receivePort?.listen((message) {
-        print("Received: $message");
-      });
+      _receivePort?.listen((message) {});
 
       return true;
     }
