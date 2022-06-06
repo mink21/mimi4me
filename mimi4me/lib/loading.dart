@@ -14,7 +14,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
-  final _startUpTime = 5;
+  final _startUpTime = 2;
 
   void _startTimer() {
     _timer.cancel();
