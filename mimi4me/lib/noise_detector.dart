@@ -180,7 +180,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
       if (!_isRecording) {
         _isRecording = true;
       }
-      _decibels = noiseReading.meanDecibel.round();
+      //_decibels = noiseReading.meanDecibel.round();
       totalVolumes.addAll(noiseReading.volumes);
       _changeColor();
       if (_notification != AppLifecycleState.resumed &&
@@ -192,7 +192,9 @@ class _NoiseDetectorState extends State<NoiseDetector>
       _fetchResult();
       setState(() {
         _recordDuration = 0;
-        if (index >= _causeList.length) index = 0;
+        (index >= _causeList.length) ? index = 0 : index++;
+        final _decibelList = [10, 40, 60, 80, 100];
+        _decibels = _decibelList[index];
       });
 
       print(_cause);
@@ -412,16 +414,16 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Future<void> _changeColor() async {
     if (_decibels >= 100) {
-      noiseDetectorPageMain._color = Colors.black;
+      noiseDetectorPageMain._color = Colors.red;
       await _vibrate();
     } else if (_decibels > 60) {
-      noiseDetectorPageMain._color = Colors.black;
+      noiseDetectorPageMain._color = Colors.orange;
     } else if (_decibels > 35) {
       noiseDetectorPageMain._color = Colors.yellow;
     } else if (_decibels > 30) {
-      noiseDetectorPageMain._color = Colors.black;
+      noiseDetectorPageMain._color = Colors.green;
     } else {
-      noiseDetectorPageMain._color = Colors.black;
+      noiseDetectorPageMain._color = Colors.blue;
     }
   }
 
