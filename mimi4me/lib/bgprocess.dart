@@ -3,7 +3,6 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 class MyTaskHandler extends TaskHandler {
   SendPort? _sendPort;
-  String? _cause;
 
   @override
   Future<void> onStart(DateTime timestamp, SendPort? sendPort) async {
@@ -20,8 +19,6 @@ class MyTaskHandler extends TaskHandler {
 
   @override
   void onButtonPressed(String id) {
-    // Called when the notification button on the Android platform is pressed.
-    print(id);
     _sendPort?.send(id);
   }
 

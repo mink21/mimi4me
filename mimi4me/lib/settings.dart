@@ -22,39 +22,84 @@ String keyNotifSetting = 'notification';
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
 String keyDogBarkFlag = "Dog Bark";
-//TODO: Add other Sound key
+String keyDrilling = "Drilling";
+
+class Sound {
+  final Color color;
+  final Color lighColor;
+  final IconData icon;
+  Sound({
+    required this.color,
+    required this.lighColor,
+    required this.icon,
+  });
+}
+
+final Map<String, Sound> _totalNoise = {
+  'AC': Sound(
+      color: Colors.blue,
+      lighColor: Colors.blue.shade100,
+      icon: Icons.question_mark),
+  'Car Honks': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.car_rental_outlined),
+  'Kids Playing': Sound(
+      color: Colors.blue,
+      lighColor: Colors.blue.shade100,
+      icon: Icons.hourglass_bottom),
+  'Dog Bark': Sound(
+      color: Colors.orange,
+      lighColor: Colors.orange.shade100,
+      icon: Icons.question_mark),
+  'Drilling': Sound(
+      color: Colors.orange,
+      lighColor: Colors.orange.shade100,
+      icon: Icons.question_mark),
+  'Engine Idling': Sound(
+      color: Colors.green,
+      lighColor: Colors.green.shade100,
+      icon: Icons.car_rental_outlined),
+  'Gun Shot': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.question_mark),
+  'Jackhammer': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.question_mark),
+  'Siren': Sound(
+      color: Colors.red,
+      lighColor: Colors.red.shade100,
+      icon: Icons.question_mark),
+  'Street Music': Sound(
+      color: Colors.green,
+      lighColor: Colors.green.shade100,
+      icon: Icons.music_note),
+};
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
-  final List<String> _totalNoise = [
-    keyAcFlag,
-    keyKidsFlag,
-    keyDogBarkFlag,
-    //TODO: Add other Sound flag
-  ];
+  List<String> get totalNoise => _totalNoise.keys.toList();
+
   bool _bgFlag = box.read(keyBgSetting) ?? false;
   bool _notifFlag = box.read(keyNotifSetting) ?? false;
 
-  bool _acFlag = box.read(keyAcFlag) ?? false;
-  bool _kidsFlag = box.read(keyKidsFlag) ?? false;
-  bool _dogFlag = box.read(keyDogBarkFlag) ?? false;
+  Map<String, bool> _flags = Map.fromIterables(
+      _totalNoise.keys.toList(),
+      List.generate(_totalNoise.length,
+          (index) => box.read(_totalNoise.keys.toList()[index]) ?? true));
 
-  //TODO: Add other Sound flag
+  List<String> _selectedSounds =
+      (box.read(keySoundList) ?? _totalNoise.keys.toList()).cast<String>()
+          as List<String>;
 
-  List<String> _selectedSounds = (box.read(keySoundList) ??
-          [
-            keyAcFlag,
-            keyKidsFlag,
-            keyDogBarkFlag,
-            //TODO: Add other Sound flag
-          ])
-      .cast<String>() as List<String>;
+  SettingsPage({Key? key}) : super(key: key);
 
   bool get bgFlag => _bgFlag;
   bool get notifFlag => _notifFlag;
   List<String> get selectedSounds => _selectedSounds;
-
-  List<String> get totalNoise => _totalNoise;
+  Map<String, bool> get flags => _flags;
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -68,27 +113,22 @@ class _SettingsPageState extends State<SettingsPage> {
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'mimi_notfication',
         channelName: 'Mimi4me Notification',
-        channelDescription:
-            'This notification appears when the foreground service is running.',
-        channelImportance: NotificationChannelImportance.DEFAULT,
+        channelImportance: NotificationChannelImportance.HIGH,
         enableVibration: true,
         playSound: true,
-        priority: NotificationPriority.DEFAULT,
+        priority: NotificationPriority.HIGH,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
           resPrefix: ResourcePrefix.ic,
-          name: 'new_logo_sm',
+          name: 'launcher',
           backgroundColor: Colors.white,
         ),
-        isSticky: false,
-        showWhen: true,
       ),
       foregroundTaskOptions: const ForegroundTaskOptions(
-        interval: 5000,
+        interval: 1000,
         autoRunOnBoot: false,
         allowWifiLock: false,
       ),
-      printDevLog: true,
     );
   }
 
@@ -121,9 +161,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (receivePort != null) {
       _receivePort = receivePort;
-      _receivePort?.listen((message) {
-        print("Received: $message");
-      });
+      _receivePort?.listen((message) {});
 
       return true;
     }
@@ -153,13 +191,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _closeReceivePort();
-    box.write(keyBgSetting, widget.bgFlag);
-    box.write(keyNotifSetting, widget.notifFlag);
+    box.write(keySoundList, widget._selectedSounds);
     super.dispose();
   }
 
-  Widget card(String name, bool state, Color lightColor, Color boldColor,
-      Function update) {
+  Widget card(String name, bool state, Sound sound, Function(String) update) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -170,21 +206,21 @@ class _SettingsPageState extends State<SettingsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
             decoration: BoxDecoration(
-              color: lightColor,
+              color: sound.lighColor,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(10.0),
                 bottomLeft: Radius.circular(10.0),
               ),
             ),
             child: Icon(
-              Icons.hourglass_empty,
-              color: boldColor,
+              sound.icon,
+              color: sound.color,
             ),
           ),
           InkWell(
-            onTap: () => update(),
+            onTap: () => update(name),
             child: Row(
               children: [
                 Container(
@@ -194,7 +230,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     bottom: 10,
                     left: 8,
                   ),
-                  child: Text(name),
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400),
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.only(right: 5),
@@ -216,52 +258,41 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _updateAcState() {
-    setState(() => widget._acFlag = !widget._acFlag);
-    box.write(keyAcFlag, widget._acFlag);
+  void _updateFlag(String val) {
+    setState(() => widget._flags[val] = !widget.flags[val]!);
+    box.write(val, widget.flags[val]);
   }
-
-  void _updateKidsPlayingState() {
-    setState(() => widget._kidsFlag = !widget._kidsFlag);
-    box.write(keyKidsFlag, widget._kidsFlag);
-  }
-
-  void _updateDogState() {
-    setState(() => widget._dogFlag = !widget._dogFlag);
-    box.write(keyDogBarkFlag, widget._dogFlag);
-  }
-
-  //TODO: Implement Other Sounds
-  /* [] change according to other sound
-  void _update[SoundName]() {
-    setState(() => widget.[_soundFlag] = !widget.[_soundFlag]);
-    box.write([soundKey], widget.[_soundFlag]);
-  }
-  */
 
   void checkAllState() {
-    Map<String, bool> _allState = {
-      keyAcFlag: widget._acFlag,
-      keyKidsFlag: widget._kidsFlag,
-      keyDogBarkFlag: widget._dogFlag,
-      //TODO: Add other Sound flag
-    };
-
-    List<String> _currentState = [];
-    _allState.forEach((i, v) {
+    final List<String> _currentState = [];
+    widget.flags.forEach((i, v) {
       if (v) _currentState.add(i);
     });
 
     setState(() => widget._selectedSounds = _currentState);
+    box.write(keySoundList, widget._selectedSounds);
   }
 
   @override
   Widget build(BuildContext context) {
     checkAllState();
-    return SafeArea(
-      child: Container(
+    return Scaffold(
+      body: Container(
+        margin: const EdgeInsets.only(top: 5),
         padding: const EdgeInsets.all(5),
-        decoration: backgroundDecoration,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              noiseDetectorPageMain.color.withOpacity(0.0),
+              noiseDetectorPageMain.color.withOpacity(0.05),
+              noiseDetectorPageMain.color.withOpacity(0.1),
+              noiseDetectorPageMain.color.withOpacity(0.15),
+              noiseDetectorPageMain.color.withOpacity(0.2),
+            ],
+          ),
+        ),
         child: ListView(
           children: [
             Container(
@@ -340,15 +371,39 @@ class _SettingsPageState extends State<SettingsPage> {
                     fontWeight: FontWeight.w400),
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => widget._flags = Map.fromIterables(
+                            _totalNoise.keys.toList(),
+                            List.generate(
+                                _totalNoise.length, (index) => true)));
+                      },
+                      child: const Text("Select All")),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => widget._flags = Map.fromIterables(
+                            _totalNoise.keys.toList(),
+                            List.generate(
+                                _totalNoise.length, (index) => false)));
+                      },
+                      child: const Text("Remove All")),
+                ),
+              ],
+            ),
             Container(
-              margin: const EdgeInsets.only(top: 5),
-              height: 340,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+              height: 300,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               child: LimitedBox(
-                maxHeight: 300, //最大の高さを指定
                 child: ListView.builder(
                   itemCount: 1,
-                  //TODO: Set to 1 , currently set as 5 to show scroll feature
                   itemBuilder: (BuildContext context, int index) {
                     return Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -356,38 +411,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           Wrap(
                             alignment: WrapAlignment.start,
                             spacing: 10.0,
-                            children: [
-                              card(
-                                "AC",
-                                widget._acFlag,
-                                Colors.lightBlue.shade100,
-                                Colors.lightBlue,
-                                _updateAcState,
+                            children: List.generate(
+                              widget.totalNoise.length,
+                              (index) => card(
+                                widget.totalNoise[index],
+                                widget.flags[widget.totalNoise[index]]!,
+                                _totalNoise[widget.totalNoise[index]]!,
+                                _updateFlag,
                               ),
-                              card(
-                                  "KidsPlaying",
-                                  widget._kidsFlag,
-                                  Colors.lightBlue.shade100,
-                                  Colors.lightBlue,
-                                  _updateKidsPlayingState),
-                              card(
-                                "Dog Bark",
-                                widget._dogFlag,
-                                Colors.yellow.shade200,
-                                Colors.orange,
-                                _updateDogState,
-                              )
-                              //TODO: Implement Other Sounds
-                              /*
-                              card(
-                                [Sound Name],
-                                widget.[Sound Flag],
-                                [Sound light Color],
-                                [Sound bold Color],
-                                [Sound flag update Function],
-                              )
-                              */
-                            ],
+                            ),
                           ),
                         ]);
                   },

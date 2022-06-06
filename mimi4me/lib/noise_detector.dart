@@ -16,29 +16,11 @@ NoiseDetector noiseDetectorPageMain = NoiseDetector(
   onStop: (cause, decibel) {
     if (settingPageMain.notifFlag &&
         settingPageMain.selectedSounds.contains(cause)) {
-      FlutterForegroundTask.updateService(
-        notificationTitle: 'Sound Check',
-        notificationText: 'Causes: $cause, SoundLevel: $decibel',
-      );
       notificationPageMain.addNotifications(
           cause, decibel, DateTime.now().toString());
     }
     print("APP-MAIN: $cause,$decibel");
   },
-);
-
-BoxDecoration backgroundDecoration = BoxDecoration(
-  gradient: LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      noiseDetectorPageMain.color.withOpacity(0.0),
-      noiseDetectorPageMain.color.withOpacity(0.05),
-      noiseDetectorPageMain.color.withOpacity(0.1),
-      noiseDetectorPageMain.color.withOpacity(0.15),
-      noiseDetectorPageMain.color.withOpacity(0.2),
-    ],
-  ),
 );
 
 // ignore: must_be_immutable
@@ -47,7 +29,7 @@ class NoiseDetector extends StatefulWidget {
 
   NoiseDetector({required this.onStop, Key? key}) : super(key: key);
 
-  Color _color = Colors.orange;
+  Color _color = Colors.blue;
 
   Color get color => _color;
 
@@ -62,18 +44,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   late tfl.Interpreter model;
 
-  final causes = {
-    0: 'AC',
-    1: 'Car Honks',
-    2: 'Kids Playing',
-    3: 'Dog Bark',
-    4: 'Drilling',
-    5: 'Engine Idling',
-    6: 'Gun Shot',
-    7: 'Jackhammer',
-    8: 'Siren',
-    9: 'Street Music'
-  };
+  final causes = settingPageMain.totalNoise.asMap();
 
   int _decibels = 0;
   int _recordDuration = 0;
@@ -81,7 +52,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
   String _cause = "";
 
   int index = 0;
-  final List<String> _causeList = settingPageMain.totalNoise;
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
@@ -107,6 +77,20 @@ class _NoiseDetectorState extends State<NoiseDetector>
       if (_isMicon) setState(() => _isRecording = true);
     }
   }
+
+  BoxDecoration backgroundDecoration = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        noiseDetectorPageMain.color.withOpacity(0.0),
+        noiseDetectorPageMain.color.withOpacity(0.05),
+        noiseDetectorPageMain.color.withOpacity(0.1),
+        noiseDetectorPageMain.color.withOpacity(0.15),
+        noiseDetectorPageMain.color.withOpacity(0.2),
+      ],
+    ),
+  );
 
   void updateCauseWidget(String cause) {
     setState(
@@ -137,7 +121,8 @@ class _NoiseDetectorState extends State<NoiseDetector>
                   child: Text(
                     '\n$cause',
                     key: ValueKey<String>(cause),
-                    style: const TextStyle(
+                    style: TextStyle(
+                      color: widget.color,
                       overflow: TextOverflow.ellipsis,
                       fontWeight: FontWeight.bold,
                       fontSize: 30,
@@ -203,15 +188,12 @@ class _NoiseDetectorState extends State<NoiseDetector>
       _fetchResult();
       setState(() {
         _recordDuration = 0;
-        if (index >= _causeList.length) index = 0;
       });
 
-      print(_cause);
       if (_notification != AppLifecycleState.resumed &&
           !settingPageMain.bgFlag) {
         stop();
       }
-      print("CURRENT STATE: $_notification");
 
       /*
       print("CURRENT STATE: $_notification");
@@ -221,47 +203,40 @@ class _NoiseDetectorState extends State<NoiseDetector>
         FlutterForegroundTask.launchApp('/');
       }
       Navigator.of(context).pushNamed('/alert');*/
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Sound Alert',
+        notificationText: 'There was a $_cause! SoundLevel: $_decibels',
+      );
       widget.onStop(_cause, _decibels.toInt());
       _changeColor();
     }
   }
 
   void onError(Object error) {
-    print(error.toString());
     _isRecording = false;
   }
 
   void start() async {
-    try {
-      _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
-      _startTimer();
-    } catch (err) {
-      print(err);
-    }
+    _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
+    _startTimer();
   }
 
   void stop() async {
-    try {
-      if (_noiseSubscription != null) {
-        _noiseSubscription!.cancel();
-        _noiseSubscription = null;
-        totalVolumes.clear();
-      }
-      setState(() {
-        _isRecording = false;
-        _recordDuration = 0;
-      });
-    } catch (err) {
-      print('stopRecorder error: $err');
+    if (_noiseSubscription != null) {
+      _noiseSubscription!.cancel();
+      _noiseSubscription = null;
+      totalVolumes.clear();
     }
+    setState(() {
+      _isRecording = false;
+      _recordDuration = 0;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "CURRENT STATE: $_notification, SOUND: ${settingPageMain.selectedSounds}");
-    return SafeArea(
-      child: AnimatedContainer(
+    return Scaffold(
+      body: AnimatedContainer(
         duration: const Duration(seconds: 2),
         curve: Curves.fastOutSlowIn,
         alignment: Alignment.center,
@@ -278,33 +253,38 @@ class _NoiseDetectorState extends State<NoiseDetector>
             ],
           ),
         ),
-        child: Column(
-          children: [
-            Container(
-              alignment: Alignment.topCenter,
-              padding: const EdgeInsets.all(5),
-              margin: const EdgeInsets.only(top: 15),
-              child: const Text(
-                "HOME",
-                style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w300),
+        child: Container(
+          margin: const EdgeInsets.only(top: 30),
+          padding: const EdgeInsets.all(5),
+          decoration: backgroundDecoration,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topCenter,
+                padding: const EdgeInsets.all(5),
+                margin: const EdgeInsets.only(top: 15),
+                child: const Text(
+                  "HOME",
+                  style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w300),
+                ),
               ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 15),
-              child: _buildDecibel(_decibels),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: _buildRecord(),
-            ),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: _buildCauses(_cause),
-            ),
-          ],
+              Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                child: _buildDecibel(_decibels),
+              ),
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                child: _buildRecord(),
+              ),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: _buildCauses(_cause),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -418,16 +398,17 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Future<void> _changeColor() async {
     if (_decibels >= 100) {
-      setState(() => widget._color = Colors.red);
+      setState(() => noiseDetectorPageMain._color = Colors.red);
       await _vibrate();
     } else if (_decibels > 60) {
-      setState(() => widget._color = Colors.orange);
-    } else if (_decibels > 35) {
-      setState(() => widget._color = Colors.yellow);
+      setState(() => noiseDetectorPageMain._color = Colors.orange);
+    } else if (_decibels > 40) {
+      setState(() => noiseDetectorPageMain._color =
+          const Color.fromARGB(255, 251, 228, 22));
     } else if (_decibels > 30) {
-      setState(() => widget._color = Colors.green);
+      setState(() => noiseDetectorPageMain._color = Colors.green);
     } else {
-      setState(() => widget._color = Colors.blue);
+      setState(() => noiseDetectorPageMain._color = Colors.blue);
     }
   }
 
@@ -453,8 +434,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
       print("FETCH RESULT: ${causes[indexResult]}");
       setState(() => _cause = causes[indexResult].toString());
       totalVolumes.clear();
-    } else {
-      print("NOT ENOUGH ${totalVolumes.length}");
     }
     _changeColor();
   }

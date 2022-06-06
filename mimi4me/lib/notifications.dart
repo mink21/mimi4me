@@ -177,60 +177,75 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Stack(
-        children: [
-          Container(
-            alignment: Alignment.topRight,
-            padding: const EdgeInsets.all(5),
-            child: ElevatedButton(
-              onPressed: () {
-                widget.deleteAllNotifications();
-                setState(() {
-                  _notificationsItem.clear();
-                  _notificationsLevel.clear();
-                  _notificationsDate.clear();
-                });
-              },
-              child: const Text("clear"),
+    return Scaffold(
+      body: Container(
+        margin: const EdgeInsets.only(top: 35),
+        child: Stack(
+          children: [
+            Container(
+              alignment: Alignment.topRight,
+              padding: const EdgeInsets.all(5),
+              child: ElevatedButton(
+                onPressed: () {
+                  widget.deleteAllNotifications();
+                  setState(() {
+                    _notificationsItem.clear();
+                    _notificationsLevel.clear();
+                    _notificationsDate.clear();
+                  });
+                },
+                child: const Text("clear"),
+              ),
             ),
-          ),
-          Container(
-            decoration: backgroundDecoration,
-            padding: const EdgeInsets.all(5),
-            child: Column(
-              children: [
-                Container(
-                  alignment: Alignment.topCenter,
-                  margin: const EdgeInsets.only(top: 15),
-                  child: const Text(
-                    "Notifications",
-                    style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w300),
-                  ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    noiseDetectorPageMain.color.withOpacity(0.0),
+                    noiseDetectorPageMain.color.withOpacity(0.05),
+                    noiseDetectorPageMain.color.withOpacity(0.1),
+                    noiseDetectorPageMain.color.withOpacity(0.15),
+                    noiseDetectorPageMain.color.withOpacity(0.2),
+                  ],
                 ),
-                Container(
-                  height: MediaQuery.of(context).size.height - 172, //最大の高さを指定,
-                  margin: const EdgeInsets.only(top: 5),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-                  child: LimitedBox(
-                    //maxHeight: MediaQuery.of(context).size.height - 200, //最大の高さを指定
-                    child: ListView.builder(
-                      itemCount: 1,
-                      //TODO: Set to 1 , currently set as 5 to show scroll feature
-                      itemBuilder: (BuildContext context, int index) {
-                        return allCard();
-                      },
+              ),
+              padding: const EdgeInsets.all(5),
+              child: Column(
+                children: [
+                  Container(
+                    alignment: Alignment.topCenter,
+                    margin: const EdgeInsets.only(top: 15),
+                    child: const Text(
+                      "Notifications",
+                      style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w300),
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    height:
+                        MediaQuery.of(context).size.height - 172, //最大の高さを指定,
+                    margin: const EdgeInsets.only(top: 5),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 10),
+                    child: LimitedBox(
+                      //maxHeight: MediaQuery.of(context).size.height - 200, //最大の高さを指定
+                      child: ListView.builder(
+                        itemCount: 1,
+                        itemBuilder: (BuildContext context, int index) {
+                          return allCard();
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

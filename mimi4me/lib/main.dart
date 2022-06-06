@@ -71,17 +71,18 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: Container(
-        height: 90,
-        color: noiseDetectorPageMain.color.withOpacity(0.17),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(50.0),
-            topRight: Radius.circular(50.0),
-          ),
+      extendBody: true,
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(50.0),
+          topRight: Radius.circular(50.0),
+        ),
+        child: SizedBox(
+          height: 90,
           child: BottomNavigationBar(
             fixedColor: Colors.black,
             type: BottomNavigationBarType.fixed,
+            elevation: 100,
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_filled),
