@@ -47,7 +47,7 @@ class NoiseDetector extends StatefulWidget {
 
   NoiseDetector({required this.onStop, Key? key}) : super(key: key);
 
-  Color _color = Colors.orange;
+  Color _color = Colors.yellow;
 
   Color get color => _color;
 
@@ -249,8 +249,8 @@ class _NoiseDetectorState extends State<NoiseDetector>
   Widget build(BuildContext context) {
     print(
         "CURRENT STATE: $_notification, SOUND: ${settingPageMain.selectedSounds}");
-    return SafeArea(
-      child: AnimatedContainer(
+    return Scaffold(
+      body: AnimatedContainer(
         duration: const Duration(seconds: 2),
         curve: Curves.fastOutSlowIn,
         alignment: Alignment.center,
@@ -267,33 +267,38 @@ class _NoiseDetectorState extends State<NoiseDetector>
             ],
           ),
         ),
-        child: Column(
-          children: [
-            Container(
-              alignment: Alignment.topCenter,
-              padding: const EdgeInsets.all(5),
-              margin: const EdgeInsets.only(top: 15),
-              child: const Text(
-                "HOME",
-                style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w300),
+        child: Container(
+          margin: const EdgeInsets.only(top: 30),
+          padding: const EdgeInsets.all(5),
+          decoration: backgroundDecoration,
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topCenter,
+                padding: const EdgeInsets.all(5),
+                margin: const EdgeInsets.only(top: 15),
+                child: const Text(
+                  "HOME",
+                  style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w300),
+                ),
               ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 15),
-              child: _buildDecibel(_decibels),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: _buildRecord(),
-            ),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: _buildCauses(_cause),
-            ),
-          ],
+              Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                child: _buildDecibel(_decibels),
+              ),
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                child: _buildRecord(),
+              ),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: _buildCauses(_cause),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -407,16 +412,16 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Future<void> _changeColor() async {
     if (_decibels >= 100) {
-      setState(() => widget._color = Colors.red);
+      widget._color = Colors.red;
       await _vibrate();
     } else if (_decibels > 60) {
-      setState(() => widget._color = Colors.orange);
+      widget._color = Colors.orange;
     } else if (_decibels > 35) {
-      setState(() => widget._color = Colors.yellow);
+      widget._color = Colors.yellow;
     } else if (_decibels > 30) {
-      setState(() => widget._color = Colors.green);
+      widget._color = Colors.green;
     } else {
-      setState(() => widget._color = Colors.blue);
+      widget._color = Colors.blue;
     }
   }
 

@@ -282,8 +282,9 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     checkAllState();
-    return SafeArea(
-      child: Container(
+    return Scaffold(
+      body: Container(
+        margin: const EdgeInsets.only(top: 5),
         padding: const EdgeInsets.all(5),
         decoration: backgroundDecoration,
         child: ListView(
