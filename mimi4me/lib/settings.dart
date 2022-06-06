@@ -286,7 +286,19 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Container(
         margin: const EdgeInsets.only(top: 5),
         padding: const EdgeInsets.all(5),
-        decoration: backgroundDecoration,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              noiseDetectorPageMain.color.withOpacity(0.0),
+              noiseDetectorPageMain.color.withOpacity(0.05),
+              noiseDetectorPageMain.color.withOpacity(0.1),
+              noiseDetectorPageMain.color.withOpacity(0.15),
+              noiseDetectorPageMain.color.withOpacity(0.2),
+            ],
+          ),
+        ),
         child: ListView(
           children: [
             Container(

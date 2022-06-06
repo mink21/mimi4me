@@ -27,20 +27,6 @@ NoiseDetector noiseDetectorPageMain = NoiseDetector(
   },
 );
 
-BoxDecoration backgroundDecoration = BoxDecoration(
-  gradient: LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      noiseDetectorPageMain.color.withOpacity(0.0),
-      noiseDetectorPageMain.color.withOpacity(0.05),
-      noiseDetectorPageMain.color.withOpacity(0.1),
-      noiseDetectorPageMain.color.withOpacity(0.15),
-      noiseDetectorPageMain.color.withOpacity(0.2),
-    ],
-  ),
-);
-
 // ignore: must_be_immutable
 class NoiseDetector extends StatefulWidget {
   final void Function(String cause, int decibel) onStop;
@@ -96,6 +82,20 @@ class _NoiseDetectorState extends State<NoiseDetector>
       if (_isMicon) setState(() => _isRecording = true);
     }
   }
+
+  BoxDecoration backgroundDecoration = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        noiseDetectorPageMain.color.withOpacity(0.0),
+        noiseDetectorPageMain.color.withOpacity(0.05),
+        noiseDetectorPageMain.color.withOpacity(0.1),
+        noiseDetectorPageMain.color.withOpacity(0.15),
+        noiseDetectorPageMain.color.withOpacity(0.2),
+      ],
+    ),
+  );
 
   void updateCauseWidget(String cause) {
     setState(
@@ -412,16 +412,16 @@ class _NoiseDetectorState extends State<NoiseDetector>
 
   Future<void> _changeColor() async {
     if (_decibels >= 100) {
-      widget._color = Colors.red;
+      noiseDetectorPageMain._color = Colors.black;
       await _vibrate();
     } else if (_decibels > 60) {
-      widget._color = Colors.orange;
+      noiseDetectorPageMain._color = Colors.black;
     } else if (_decibels > 35) {
-      widget._color = Colors.yellow;
+      noiseDetectorPageMain._color = Colors.yellow;
     } else if (_decibels > 30) {
-      widget._color = Colors.green;
+      noiseDetectorPageMain._color = Colors.black;
     } else {
-      widget._color = Colors.blue;
+      noiseDetectorPageMain._color = Colors.black;
     }
   }
 

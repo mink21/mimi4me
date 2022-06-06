@@ -181,7 +181,6 @@ class _NotificationPageState extends State<NotificationPage> {
       body: Container(
         margin: const EdgeInsets.only(top: 30),
         padding: const EdgeInsets.all(5),
-        decoration: backgroundDecoration,
         child: Stack(
           children: [
             Container(
@@ -200,7 +199,19 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
             ),
             Container(
-              decoration: backgroundDecoration,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    noiseDetectorPageMain.color.withOpacity(0.0),
+                    noiseDetectorPageMain.color.withOpacity(0.05),
+                    noiseDetectorPageMain.color.withOpacity(0.1),
+                    noiseDetectorPageMain.color.withOpacity(0.15),
+                    noiseDetectorPageMain.color.withOpacity(0.2),
+                  ],
+                ),
+              ),
               padding: const EdgeInsets.all(5),
               child: Column(
                 children: [
