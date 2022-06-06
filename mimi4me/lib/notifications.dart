@@ -179,8 +179,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: const EdgeInsets.only(top: 30),
-        padding: const EdgeInsets.all(5),
+        margin: const EdgeInsets.only(top: 35),
         child: Stack(
           children: [
             Container(

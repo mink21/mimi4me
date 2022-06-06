@@ -128,7 +128,7 @@ class _SettingsPageState extends State<SettingsPage> {
         showWhen: true,
       ),
       foregroundTaskOptions: const ForegroundTaskOptions(
-        interval: 5000,
+        interval: 1000,
         autoRunOnBoot: false,
         allowWifiLock: false,
       ),
