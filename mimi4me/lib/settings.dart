@@ -22,39 +22,44 @@ String keyNotifSetting = 'notification';
 String keyAcFlag = "AC";
 String keyKidsFlag = "Kids Playing";
 String keyDogBarkFlag = "Dog Bark";
+String keyDrilling = "Drilling";
+
+final List<String> _totalNoise = [
+  'AC',
+  'Car Honks',
+  'Kids Playing',
+  'Dog Bark',
+  'Drilling',
+  'Engine Idling',
+  'Gun Shot',
+  'Jackhammer',
+  'Siren',
+  'Street Music'
+];
+
 //TODO: Add other Sound key
 
 // ignore: must_be_immutable
 class SettingsPage extends StatefulWidget {
-  final List<String> _totalNoise = [
-    keyAcFlag,
-    keyKidsFlag,
-    keyDogBarkFlag,
-    //TODO: Add other Sound flag
-  ];
+  List<String> get totalNoise => _totalNoise;
+
   bool _bgFlag = box.read(keyBgSetting) ?? false;
   bool _notifFlag = box.read(keyNotifSetting) ?? false;
 
-  bool _acFlag = box.read(keyAcFlag) ?? false;
-  bool _kidsFlag = box.read(keyKidsFlag) ?? false;
-  bool _dogFlag = box.read(keyDogBarkFlag) ?? false;
+  final Map<String, bool> _flags = Map.fromIterables(
+      _totalNoise,
+      List.generate(_totalNoise.length,
+          (index) => box.read(_totalNoise[index]) ?? false));
 
-  //TODO: Add other Sound flag
+  List<String> _selectedSounds =
+      (box.read(keySoundList) ?? _totalNoise).cast<String>() as List<String>;
 
-  List<String> _selectedSounds = (box.read(keySoundList) ??
-          [
-            keyAcFlag,
-            keyKidsFlag,
-            keyDogBarkFlag,
-            //TODO: Add other Sound flag
-          ])
-      .cast<String>() as List<String>;
+  SettingsPage({Key? key}) : super(key: key);
 
   bool get bgFlag => _bgFlag;
   bool get notifFlag => _notifFlag;
   List<String> get selectedSounds => _selectedSounds;
-
-  List<String> get totalNoise => _totalNoise;
+  Map<String, bool> get flags => _flags;
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -153,13 +158,12 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _closeReceivePort();
-    box.write(keyBgSetting, widget.bgFlag);
-    box.write(keyNotifSetting, widget.notifFlag);
+    box.write(keySoundList, widget._selectedSounds);
     super.dispose();
   }
 
   Widget card(String name, bool state, Color lightColor, Color boldColor,
-      Function update) {
+      Function(String) update) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -184,7 +188,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           InkWell(
-            onTap: () => update(),
+            onTap: () => update(name),
             child: Row(
               children: [
                 Container(
@@ -216,43 +220,19 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _updateAcState() {
-    setState(() => widget._acFlag = !widget._acFlag);
-    box.write(keyAcFlag, widget._acFlag);
+  void _updateFlag(String val) {
+    setState(() => widget._flags[val] = !widget.flags[val]!);
+    box.write(val, widget.flags[val]);
   }
-
-  void _updateKidsPlayingState() {
-    setState(() => widget._kidsFlag = !widget._kidsFlag);
-    box.write(keyKidsFlag, widget._kidsFlag);
-  }
-
-  void _updateDogState() {
-    setState(() => widget._dogFlag = !widget._dogFlag);
-    box.write(keyDogBarkFlag, widget._dogFlag);
-  }
-
-  //TODO: Implement Other Sounds
-  /* [] change according to other sound
-  void _update[SoundName]() {
-    setState(() => widget.[_soundFlag] = !widget.[_soundFlag]);
-    box.write([soundKey], widget.[_soundFlag]);
-  }
-  */
 
   void checkAllState() {
-    Map<String, bool> _allState = {
-      keyAcFlag: widget._acFlag,
-      keyKidsFlag: widget._kidsFlag,
-      keyDogBarkFlag: widget._dogFlag,
-      //TODO: Add other Sound flag
-    };
-
-    List<String> _currentState = [];
-    _allState.forEach((i, v) {
+    final List<String> _currentState = [];
+    widget.flags.forEach((i, v) {
       if (v) _currentState.add(i);
     });
 
     setState(() => widget._selectedSounds = _currentState);
+    box.write(keySoundList, widget._selectedSounds);
   }
 
   @override
@@ -356,38 +336,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           Wrap(
                             alignment: WrapAlignment.start,
                             spacing: 10.0,
-                            children: [
-                              card(
-                                "AC",
-                                widget._acFlag,
+                            children: List.generate(
+                              widget.totalNoise.length,
+                              (index) => card(
+                                widget.totalNoise[index],
+                                widget.flags[widget.totalNoise[index]]!,
                                 Colors.lightBlue.shade100,
                                 Colors.lightBlue,
-                                _updateAcState,
+                                _updateFlag,
                               ),
-                              card(
-                                  "KidsPlaying",
-                                  widget._kidsFlag,
-                                  Colors.lightBlue.shade100,
-                                  Colors.lightBlue,
-                                  _updateKidsPlayingState),
-                              card(
-                                "Dog Bark",
-                                widget._dogFlag,
-                                Colors.yellow.shade200,
-                                Colors.orange,
-                                _updateDogState,
-                              )
-                              //TODO: Implement Other Sounds
-                              /*
-                              card(
-                                [Sound Name],
-                                widget.[Sound Flag],
-                                [Sound light Color],
-                                [Sound bold Color],
-                                [Sound flag update Function],
-                              )
-                              */
-                            ],
+                            ),
                           ),
                         ]);
                   },
