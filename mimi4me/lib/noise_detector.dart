@@ -1,10 +1,10 @@
 // ignore_for_file: use_full_hex_values_for_flutter_colors
-
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
+import 'package:flutter/material.dart';
 import 'package:vibration/vibration.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
@@ -19,7 +19,6 @@ NoiseDetector noiseDetectorPageMain = NoiseDetector(
       notificationPageMain.addNotifications(
           cause, decibel, DateTime.now().toString());
     }
-    print("APP-MAIN: $cause,$decibel");
   },
 );
 
@@ -41,6 +40,13 @@ class _NoiseDetectorState extends State<NoiseDetector>
     with WidgetsBindingObserver {
   bool _isMicon = false;
   bool _isRecording = false;
+  bool _showAlert = false;
+  final List<String> _showAlertList = [
+    'Car Honks',
+    'Gun Shot',
+    'Jackhammer',
+    'Siren',
+  ];
 
   late tfl.Interpreter model;
 
@@ -50,8 +56,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
   int _recordDuration = 0;
 
   String _cause = "";
-
-  int index = 0;
 
   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {});
 
@@ -185,6 +189,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
       }
     });
     if (_recordDuration >= _intervals) {
+      _decibels = noiseReading.meanDecibel.round();
       _fetchResult();
       setState(() {
         _recordDuration = 0;
@@ -194,19 +199,6 @@ class _NoiseDetectorState extends State<NoiseDetector>
           !settingPageMain.bgFlag) {
         stop();
       }
-
-      /*
-      print("CURRENT STATE: $_notification");
-      alertPageMain.updateCause(_cause);
-      stop();
-      if (_notification != AppLifecycleState.resumed) {
-        FlutterForegroundTask.launchApp('/');
-      }
-      Navigator.of(context).pushNamed('/alert');*/
-      FlutterForegroundTask.updateService(
-        notificationTitle: 'Sound Alert',
-        notificationText: 'There was a $_cause! SoundLevel: $_decibels',
-      );
       widget.onStop(_cause, _decibels.toInt());
       _changeColor();
     }
@@ -257,32 +249,86 @@ class _NoiseDetectorState extends State<NoiseDetector>
           margin: const EdgeInsets.only(top: 30),
           padding: const EdgeInsets.all(5),
           decoration: backgroundDecoration,
-          child: Column(
+          child: Stack(
             children: [
-              Container(
-                alignment: Alignment.topCenter,
-                padding: const EdgeInsets.all(5),
-                margin: const EdgeInsets.only(top: 15),
-                child: const Text(
-                  "HOME",
-                  style: TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w300),
-                ),
+              Column(
+                children: [
+                  Container(
+                    alignment: Alignment.topCenter,
+                    padding: const EdgeInsets.all(5),
+                    margin: const EdgeInsets.only(top: 15),
+                    child: const Text(
+                      "HOME",
+                      style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w300),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 15),
+                    child: _buildDecibel(_decibels),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: _buildRecord(),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: _buildCauses(_cause),
+                  ),
+                ],
               ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 15),
-                child: _buildDecibel(_decibels),
-              ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                child: _buildRecord(),
-              ),
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: _buildCauses(_cause),
-              ),
+              (_showAlert)
+                  ? AlertDialog(
+                      title: Container(),
+                      content: RichText(
+                        text: TextSpan(
+                          text: "There was a ",
+                          style: const TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 14,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w300),
+                          children: [
+                            TextSpan(
+                              text: "$_cause ",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            const TextSpan(text: "which has "),
+                            TextSpan(
+                              text: "$_decibels",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            const TextSpan(text: "db!"),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(40.0)),
+                      ),
+                      actionsAlignment: MainAxisAlignment.spaceEvenly,
+                      actions: [
+                        TextButton(
+                          child: const Text(
+                            "Call Emergency",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          onPressed: () {
+                            final Uri _url = Uri.parse('tel:119');
+                            launchUrl(_url);
+                          },
+                        ),
+                        TextButton(
+                          child: const Text("OK"),
+                          onPressed: () => setState(() => _showAlert = false),
+                        )
+                      ],
+                    )
+                  : Container(),
             ],
           ),
         ),
@@ -431,9 +477,20 @@ class _NoiseDetectorState extends State<NoiseDetector>
       var use = totalVolumes.sublist(0, 44100).reshape([1, 44100]);
       model.run(use, output);
       final indexResult = getIndex(output);
-      print("FETCH RESULT: ${causes[indexResult]}");
       setState(() => _cause = causes[indexResult].toString());
       totalVolumes.clear();
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Sound Alert',
+        notificationText: 'There was a $_cause! SoundLevel: $_decibels',
+      );
+      if (_showAlertList.contains(_cause)) {
+        _vibrate();
+        setState(() => _showAlert = true);
+        stop();
+        if (_notification != AppLifecycleState.resumed) {
+          FlutterForegroundTask.launchApp('/');
+        }
+      }
     }
     _changeColor();
   }
