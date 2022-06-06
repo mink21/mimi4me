@@ -29,7 +29,7 @@ class NoiseDetector extends StatefulWidget {
 
   NoiseDetector({required this.onStop, Key? key}) : super(key: key);
 
-  Color _color = Colors.yellow;
+  Color _color = Colors.blue;
 
   Color get color => _color;
 
@@ -402,8 +402,9 @@ class _NoiseDetectorState extends State<NoiseDetector>
       await _vibrate();
     } else if (_decibels > 60) {
       setState(() => noiseDetectorPageMain._color = Colors.orange);
-    } else if (_decibels > 35) {
-      setState(() => noiseDetectorPageMain._color = Colors.yellow);
+    } else if (_decibels > 40) {
+      setState(() => noiseDetectorPageMain._color =
+          const Color.fromARGB(255, 251, 228, 22));
     } else if (_decibels > 30) {
       setState(() => noiseDetectorPageMain._color = Colors.green);
     } else {
