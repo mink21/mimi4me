@@ -85,13 +85,14 @@ class SettingsPage extends StatefulWidget {
   bool _bgFlag = box.read(keyBgSetting) ?? false;
   bool _notifFlag = box.read(keyNotifSetting) ?? false;
 
-  final Map<String, bool> _flags = Map.fromIterables(
+  Map<String, bool> _flags = Map.fromIterables(
       _totalNoise.keys.toList(),
       List.generate(_totalNoise.length,
-          (index) => box.read(_totalNoise.keys.toList()[index]) ?? false));
+          (index) => box.read(_totalNoise.keys.toList()[index]) ?? true));
 
   List<String> _selectedSounds =
-      (box.read(keySoundList) ?? _totalNoise).cast<String>() as List<String>;
+      (box.read(keySoundList) ?? _totalNoise.keys.toList()).cast<String>()
+          as List<String>;
 
   SettingsPage({Key? key}) : super(key: key);
 
@@ -112,27 +113,22 @@ class _SettingsPageState extends State<SettingsPage> {
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'mimi_notfication',
         channelName: 'Mimi4me Notification',
-        channelDescription:
-            'This notification appears when the foreground service is running.',
-        channelImportance: NotificationChannelImportance.DEFAULT,
+        channelImportance: NotificationChannelImportance.HIGH,
         enableVibration: true,
         playSound: true,
-        priority: NotificationPriority.DEFAULT,
+        priority: NotificationPriority.HIGH,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
           resPrefix: ResourcePrefix.ic,
-          name: 'new_logo_sm',
+          name: 'launcher',
           backgroundColor: Colors.white,
         ),
-        isSticky: false,
-        showWhen: true,
       ),
       foregroundTaskOptions: const ForegroundTaskOptions(
         interval: 1000,
         autoRunOnBoot: false,
         allowWifiLock: false,
       ),
-      printDevLog: true,
     );
   }
 
@@ -375,12 +371,37 @@ class _SettingsPageState extends State<SettingsPage> {
                     fontWeight: FontWeight.w400),
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => widget._flags = Map.fromIterables(
+                            _totalNoise.keys.toList(),
+                            List.generate(
+                                _totalNoise.length, (index) => true)));
+                      },
+                      child: const Text("Select All")),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => widget._flags = Map.fromIterables(
+                            _totalNoise.keys.toList(),
+                            List.generate(
+                                _totalNoise.length, (index) => false)));
+                      },
+                      child: const Text("Remove All")),
+                ),
+              ],
+            ),
             Container(
-              margin: const EdgeInsets.only(top: 5),
-              height: 340,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+              height: 300,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               child: LimitedBox(
-                maxHeight: 300,
                 child: ListView.builder(
                   itemCount: 1,
                   itemBuilder: (BuildContext context, int index) {

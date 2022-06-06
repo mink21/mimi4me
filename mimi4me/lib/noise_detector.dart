@@ -14,14 +14,8 @@ import 'notifications.dart';
 
 NoiseDetector noiseDetectorPageMain = NoiseDetector(
   onStop: (cause, decibel) {
-    print(
-        "SETTING ${settingPageMain.notifFlag} RESULT: $cause, ${settingPageMain.selectedSounds.contains(cause)}, SOUNDS: ${settingPageMain.selectedSounds}");
     if (settingPageMain.notifFlag &&
         settingPageMain.selectedSounds.contains(cause)) {
-      FlutterForegroundTask.updateService(
-        notificationTitle: 'There was a $cause!',
-        notificationText: 'SoundLevel: $decibel',
-      );
       notificationPageMain.addNotifications(
           cause, decibel, DateTime.now().toString());
     }
@@ -127,7 +121,8 @@ class _NoiseDetectorState extends State<NoiseDetector>
                   child: Text(
                     '\n$cause',
                     key: ValueKey<String>(cause),
-                    style: const TextStyle(
+                    style: TextStyle(
+                      color: widget.color,
                       overflow: TextOverflow.ellipsis,
                       fontWeight: FontWeight.bold,
                       fontSize: 30,
@@ -208,6 +203,10 @@ class _NoiseDetectorState extends State<NoiseDetector>
         FlutterForegroundTask.launchApp('/');
       }
       Navigator.of(context).pushNamed('/alert');*/
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Sound Alert',
+        notificationText: 'There was a $_cause! SoundLevel: $_decibels',
+      );
       widget.onStop(_cause, _decibels.toInt());
       _changeColor();
     }
