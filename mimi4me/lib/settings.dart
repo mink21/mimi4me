@@ -139,9 +139,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
     ReceivePort? receivePort;
     if (await FlutterForegroundTask.isRunningService) {
-      receivePort = await FlutterForegroundTask.restartService();
+      await FlutterForegroundTask.restartService();
     } else {
-      receivePort = await FlutterForegroundTask.startService(
+      await FlutterForegroundTask.startService(
         notificationTitle: 'Mimi4me',
         notificationText: 'Notifcations is On',
         callback: startCallback,
@@ -204,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 25),
             decoration: BoxDecoration(
               color: sound.lighColor,
               borderRadius: const BorderRadius.only(
@@ -222,10 +222,10 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Row(
               children: [
                 Container(
-                  width: 90,
+                  width: 100,
                   padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
+                    top: 20,
+                    bottom: 20,
                     left: 8,
                   ),
                   child: Text(
@@ -262,12 +262,12 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void checkAllState() {
-    final List<String> _currentState = [];
+    final List<String> currentState = [];
     widget.flags.forEach((i, v) {
-      if (v) _currentState.add(i);
+      if (v) currentState.add(i);
     });
 
-    setState(() => widget._selectedSounds = _currentState);
+    setState(() => widget._selectedSounds = currentState);
     box.write(keySoundList, widget._selectedSounds);
   }
 
@@ -397,7 +397,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             Container(
-              height: 300,
+              height: (MediaQuery.of(context).size.height - 100) * 50 / 100,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               child: LimitedBox(
                 child: ListView.builder(

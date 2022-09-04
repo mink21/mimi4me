@@ -117,9 +117,9 @@ class _NoiseDetectorState extends State<NoiseDetector>
                   duration: const Duration(milliseconds: 700),
                   transitionBuilder: (child, animation) {
                     return ScaleTransition(
-                      child: child,
                       scale: animation,
                       alignment: Alignment.centerLeft,
+                      child: child,
                     );
                   },
                   child: Text(
@@ -163,7 +163,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
     _isRecording = false;
 
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _noiseMeter = NoiseMeter(onError);
   }
 
@@ -171,7 +171,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
   void dispose() {
     _timer.cancel();
     _noiseSubscription?.cancel();
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -318,8 +318,8 @@ class _NoiseDetectorState extends State<NoiseDetector>
                             style: TextStyle(color: Colors.red),
                           ),
                           onPressed: () {
-                            final Uri _url = Uri.parse('tel:119');
-                            launchUrl(_url);
+                            final Uri url = Uri.parse('tel:119');
+                            launchUrl(url);
                           },
                         ),
                         TextButton(
@@ -424,20 +424,20 @@ class _NoiseDetectorState extends State<NoiseDetector>
       child: Material(
         color: color,
         child: InkWell(
+          onTap: _tapFunction,
           child: SizedBox(
             width: 56,
             height: 56,
             child: icon,
           ),
-          onTap: _tapFunction,
         ),
       ),
     );
   }
 
   Future<void> _vibrate() async {
-    bool? _hasVibrator = await Vibration.hasVibrator();
-    if (_hasVibrator != null && _hasVibrator) {
+    bool? hasVibrator = await Vibration.hasVibrator();
+    if (hasVibrator != null && hasVibrator) {
       Vibration.vibrate(duration: 2000);
     }
   }
@@ -490,6 +490,7 @@ class _NoiseDetectorState extends State<NoiseDetector>
         if (_notification != AppLifecycleState.resumed) {
           FlutterForegroundTask.launchApp('/');
         }
+        widget.onStop(_cause, _decibels.toInt());
       }
     }
     _changeColor();
